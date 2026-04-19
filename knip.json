@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "workspaces": {
+    "packages/react": {
+      "project": ["src/**/*.tsx"]
+    },
+    "apps/example-react": {
+      "project": ["src/**/*.ts", "src/**/*.tsx"]
+    },
+    "apps/example-remote-inspector": {
+      "project": ["src/**/*.tsx"]
+    },
+    "apps/docs": {
+      "project": ["src/**/*.ts"],
+      "astro": true
+    }
+  }
+}

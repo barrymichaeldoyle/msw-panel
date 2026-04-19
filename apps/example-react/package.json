@@ -1,0 +1,26 @@
+{
+  "name": "@msw-panel/example-react",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    
+    "msw-panel": "workspace:*",
+    
+    "msw": "2.13.4",
+    "react": "19.2.5",
+    "react-dom": "19.2.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

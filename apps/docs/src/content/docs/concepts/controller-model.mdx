@@ -1,0 +1,59 @@
+---
+title: Controller model
+description: The core control model that every adapter and transport builds on.
+---
+
+import ControllerPlayground from "../../../components/ControllerPlayground.astro";
+
+Everything in `msw-panel` orbits the controller interface exposed by `msw-panel`.
+
+## Controller contract
+
+```ts
+interface MswPanelController {
+  getSnapshot(): MswPanelSnapshot;
+  setAllEnabled(nextEnabled: boolean): void;
+  setEnabled(id: string, nextEnabled: boolean): void;
+  subscribe(listener: () => void): () => void;
+  sync(): void;
+  toggle(id: string): void;
+}
+```
+
+That small surface area is intentional. The React panel uses it directly, and the bridge client emulates the same shape over a transport boundary.
+
+## Snapshot model
+
+The controller exposes a derived snapshot rather than leaking internal state. A snapshot includes:
+
+- the active handler count
+- the disabled handler count
+- one entry per handler with `id`, `enabled`, `kind`, `label`, `method`, and `path`
+
+Because the snapshot is plain data, UI adapters and transports do not need to know anything about MSW internals.
+
+<ControllerPlayground />
+
+## Runtime ownership
+
+The host application still owns the runtime and the handler list:
+
+```ts
+const controller = createMswPanelController({
+  handlers,
+  runtime: worker,
+  storage: window.localStorage,
+  storageKey: "msw-panel:demo",
+});
+```
+
+That means `msw-panel` does not replace your mocking setup. It consumes:
+
+- the runtime object that can list and reset handlers
+- the handlers your app already defined
+
+## Sync behavior
+
+The controller starts from the supplied handler set and can rebuild from the runtime later with `sync()`. Enabled state is preserved where handler identities still match.
+
+That design is simple and predictable, but it also explains the current limitation: runtime-added handlers do not appear automatically unless the host calls `controller.sync()`.

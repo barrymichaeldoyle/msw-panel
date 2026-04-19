@@ -1,0 +1,96 @@
+:root {
+  color: #1f1b17;
+  font-family: "Sora", "Avenir Next", sans-serif;
+  line-height: 1.5;
+  background:
+    radial-gradient(circle at top, rgba(241, 143, 1, 0.18), transparent 28rem),
+    linear-gradient(180deg, #fdf7ef 0%, #f6efe3 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button {
+  background: #1f1b17;
+  border: 0;
+  border-radius: 999px;
+  color: #fff8f0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.8rem 1.1rem;
+}
+
+.app-shell {
+  margin: 0 auto;
+  max-width: 72rem;
+  padding: 4rem 1rem 8rem;
+}
+
+.hero {
+  max-width: 46rem;
+}
+
+.eyebrow {
+  color: #8d5b17;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin: 0 0 0.9rem;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-size: clamp(2.6rem, 7vw, 5.2rem);
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  margin: 0;
+  max-width: 12ch;
+}
+
+.lede {
+  color: #51463a;
+  font-size: 1.05rem;
+  margin-top: 1.3rem;
+  max-width: 42rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  margin-top: 2rem;
+}
+
+.card {
+  background: rgba(255, 251, 245, 0.82);
+  border: 1px solid rgba(143, 91, 23, 0.16);
+  border-radius: 1.5rem;
+  box-shadow: 0 16px 48px rgba(85, 58, 13, 0.08);
+  padding: 1.4rem;
+}
+
+.card h2 {
+  font-size: 1.2rem;
+  margin: 0 0 0.75rem;
+}
+
+.card p {
+  color: #5f5347;
+  min-height: 3rem;
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding-top: 3rem;
+  }
+
+  .hero h1 {
+    max-width: 10ch;
+  }
+}

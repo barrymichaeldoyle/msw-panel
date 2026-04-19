@@ -1,0 +1,24 @@
+{
+  "name": "@msw-panel/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "astro": "astro",
+    "build": "astro build",
+    "dev": "astro dev",
+    "lint": "astro check",
+    "preview": "astro preview",
+    "test": "echo 'No tests configured for @msw-panel/docs'",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.38.3",
+    "astro": "6.1.8",
+    "sharp": "0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.8",
+    "typescript": "6.0.3"
+  }
+}

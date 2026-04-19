@@ -1,0 +1,50 @@
+---
+title: Run the remote inspector example
+description: Use the relay-backed example apps to inspect a host app from a separate React app.
+---
+
+import RemoteInspectorFlow from "../../../components/RemoteInspectorFlow.astro";
+
+The repo includes a remote inspector path built on the WebSocket bridge transport.
+
+<RemoteInspectorFlow />
+
+## Start the relay
+
+```bash
+pnpm dev:example-remote-relay
+```
+
+The relay defaults to `ws://localhost:4197`.
+
+## Start the host app
+
+```bash
+pnpm dev:example-react
+```
+
+The host app mounts a local `MswPanel` against a bridge client backed by `BroadcastChannel`. The WebSocket bridge to the remote relay is **opt-in** — it only activates when `VITE_MSW_PANEL_RELAY_URL` is set in the environment.
+
+## Start the inspector app
+
+```bash
+pnpm dev:example-remote-inspector
+```
+
+By default, both host and inspector connect to the `example-react` session on the relay.
+
+## Enabling the remote bridge
+
+Set `VITE_MSW_PANEL_RELAY_URL` when starting the host app to activate the WebSocket bridge:
+
+```bash
+VITE_MSW_PANEL_RELAY_URL=ws://localhost:4197 pnpm dev:example-react
+```
+
+To connect to a different relay, point either app at its URL with this variable.
+
+## What this example proves
+
+- the React panel does not care whether its controller is local or remote
+- the WebSocket transport can carry the bridge handshake without connection timing hacks
+- one runtime can be controlled by more than one UI surface

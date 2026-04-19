@@ -1,0 +1,285 @@
+<section class="demo-shell" aria-labelledby="controller-demo-title">
+  <div class="demo-header">
+    <div>
+      <p class="demo-eyebrow">Interactive example</p>
+      <h3 id="controller-demo-title">Controller snapshot playground</h3>
+    </div>
+    <p class="demo-copy">
+      Toggle handlers, add a runtime handler, and then call <code>sync()</code> to see how the
+      snapshot catches up.
+    </p>
+  </div>
+
+  <msw-panel-controller-demo>
+    <div class="demo-toolbar">
+      <button data-action="enable-all" type="button">Enable all</button>
+      <button data-action="disable-all" type="button">Disable all</button>
+      <button data-action="add-runtime" type="button">Add runtime handler</button>
+      <button data-action="sync" type="button">Sync snapshot</button>
+    </div>
+
+    <div class="demo-stats">
+      <div class="demo-stat">
+        <span class="demo-stat-label">Snapshot active</span>
+        <strong data-field="active-count">0</strong>
+      </div>
+      <div class="demo-stat">
+        <span class="demo-stat-label">Snapshot disabled</span>
+        <strong data-field="disabled-count">0</strong>
+      </div>
+      <div class="demo-stat">
+        <span class="demo-stat-label">Runtime handlers</span>
+        <strong data-field="runtime-count">0</strong>
+      </div>
+    </div>
+
+    <p class="demo-note" data-field="note">
+      The snapshot starts aligned with the runtime.
+    </p>
+
+    <ul class="handler-list" data-field="handler-list"></ul>
+  </msw-panel-controller-demo>
+</section>
+
+<style>
+  .demo-shell {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    display: grid;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background:
+      linear-gradient(180deg, rgba(242, 237, 229, 0.88), rgba(255, 255, 255, 0.92)),
+      var(--sl-color-bg);
+  }
+
+  .demo-header {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .demo-eyebrow,
+  .demo-stat-label,
+  .handler-meta {
+    color: var(--sl-color-text-accent);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .demo-header h3 {
+    margin: 0.2rem 0 0;
+  }
+
+  .demo-copy,
+  .demo-note {
+    color: var(--sl-color-gray-2);
+    margin: 0;
+  }
+
+  .demo-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .demo-toolbar button,
+  .handler-list button {
+    appearance: none;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    cursor: pointer;
+    font: inherit;
+    padding: 0.55rem 0.9rem;
+  }
+
+  .demo-toolbar button[data-action="add-runtime"] {
+    background: #7b3f00;
+  }
+
+  .demo-toolbar button[data-action="sync"] {
+    background: #145b43;
+  }
+
+  .demo-stats {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .demo-stat {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.9rem;
+    padding: 0.85rem;
+  }
+
+  .demo-stat strong {
+    display: block;
+    font-size: 1.4rem;
+    margin-top: 0.35rem;
+  }
+
+  .handler-list {
+    display: grid;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .handler-row {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .handler-name {
+    font-weight: 600;
+  }
+
+  .handler-meta {
+    display: block;
+    margin-top: 0.2rem;
+  }
+
+  .handler-list button[data-enabled="false"] {
+    background: #b3521f;
+  }
+
+  @media (max-width: 720px) {
+    .demo-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script is:inline>
+  class MswPanelControllerDemo extends HTMLElement {
+    constructor() {
+      super();
+      this.snapshotHandlers = [
+        { enabled: true, id: "user", kind: "http", label: "GET /api/user" },
+        { enabled: true, id: "projects", kind: "http", label: "GET /api/projects" },
+        { enabled: true, id: "activity", kind: "graphql", label: "query ActivityFeed" },
+      ];
+      this.runtimeHandlers = [...this.snapshotHandlers];
+      this.runtimeOnlyCounter = 0;
+    }
+
+    connectedCallback() {
+      this.list = this.querySelector('[data-field="handler-list"]');
+      this.activeCount = this.querySelector('[data-field="active-count"]');
+      this.disabledCount = this.querySelector('[data-field="disabled-count"]');
+      this.runtimeCount = this.querySelector('[data-field="runtime-count"]');
+      this.note = this.querySelector('[data-field="note"]');
+
+      this.addEventListener("click", (event) => {
+        const target = event.target;
+
+        if (!(target instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const action = target.dataset.action;
+
+        if (action === "enable-all") {
+          this.snapshotHandlers = this.snapshotHandlers.map((handler) => ({
+            ...handler,
+            enabled: true,
+          }));
+          this.render("The snapshot has all handlers enabled.");
+          return;
+        }
+
+        if (action === "disable-all") {
+          this.snapshotHandlers = this.snapshotHandlers.map((handler) => ({
+            ...handler,
+            enabled: false,
+          }));
+          this.render("The snapshot has all handlers disabled, so requests would fall through.");
+          return;
+        }
+
+        if (action === "add-runtime") {
+          this.runtimeOnlyCounter += 1;
+          this.runtimeHandlers = [
+            ...this.runtimeHandlers,
+            {
+              enabled: true,
+              id: "runtime-" + this.runtimeOnlyCounter,
+              kind: "http",
+              label: "GET /api/runtime-" + this.runtimeOnlyCounter,
+            },
+          ];
+          this.render(
+            "A handler was added to the runtime, but the snapshot does not see it until sync() runs.",
+          );
+          return;
+        }
+
+        if (action === "sync") {
+          const enabledById = new Map(
+            this.snapshotHandlers.map((handler) => [handler.id, handler.enabled]),
+          );
+
+          this.snapshotHandlers = this.runtimeHandlers.map((handler) => ({
+            ...handler,
+            enabled: enabledById.get(handler.id) ?? true,
+          }));
+          this.render("The snapshot was rebuilt from the runtime and now includes the new handler.");
+          return;
+        }
+
+        const handlerId = target.dataset.handlerId;
+
+        if (!handlerId) {
+          return;
+        }
+
+        this.snapshotHandlers = this.snapshotHandlers.map((handler) =>
+          handler.id === handlerId ? { ...handler, enabled: !handler.enabled } : handler,
+        );
+        this.render("The snapshot changed without touching the runtime handler list.");
+      });
+
+      this.render("The snapshot starts aligned with the runtime.");
+    }
+
+    render(note) {
+      const activeHandlers = this.snapshotHandlers.filter((handler) => handler.enabled).length;
+
+      this.activeCount.textContent = String(activeHandlers);
+      this.disabledCount.textContent = String(this.snapshotHandlers.length - activeHandlers);
+      this.runtimeCount.textContent = String(this.runtimeHandlers.length);
+      this.note.textContent = note;
+      this.list.innerHTML = this.snapshotHandlers
+        .map(
+          (handler) => `
+            <li class="handler-row">
+              <div>
+                <span class="handler-name">${handler.label}</span>
+                <span class="handler-meta">${handler.kind} · id: ${handler.id}</span>
+              </div>
+              <button data-enabled="${String(handler.enabled)}" data-handler-id="${handler.id}" type="button">
+                ${handler.enabled ? "On" : "Off"}
+              </button>
+            </li>
+          `,
+        )
+        .join("");
+    }
+  }
+
+  if (!customElements.get("msw-panel-controller-demo")) {
+    customElements.define("msw-panel-controller-demo", MswPanelControllerDemo);
+  }
+</script>

@@ -1,0 +1,40 @@
+{
+  "name": "msw-panel",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev:docs": "pnpm --filter @msw-panel/docs dev",
+    "dev:example-node": "pnpm --filter @msw-panel/example-node dev",
+    "dev:example-remote-inspector": "pnpm --filter @msw-panel/example-remote-inspector dev",
+    "dev:example-remote-relay": "pnpm --filter @msw-panel/example-remote-relay dev",
+    "dev:example-react": "pnpm --filter @msw-panel/example-react dev",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt . --check",
+    "knip": "knip",
+    "lint": "pnpm run lint:ox",
+    "lint:fix": "oxlint . --fix",
+    "lint:ox": "oxlint .",
+    "pp": "pnpm patch-pulse",
+    "pp:i": "pnpm patch-pulse -i",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "25.6.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "jsdom": "29.0.2",
+    "knip": "6.4.1",
+    "oxfmt": "0.45.0",
+    "oxlint": "1.60.0",
+    "patch-pulse": "4.0.4",
+    "tsup": "8.5.1",
+    "tsx": "4.21.0",
+    "typescript": "6.0.3",
+    "vite": "8.0.8",
+    "vitest": "4.1.4"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

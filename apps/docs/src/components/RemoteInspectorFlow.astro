@@ -1,0 +1,357 @@
+<section class="remote-shell" aria-labelledby="remote-demo-title">
+  <div class="remote-header">
+    <div>
+      <p class="remote-eyebrow">Interactive example</p>
+      <h3 id="remote-demo-title">Remote inspector flow</h3>
+    </div>
+    <p class="remote-copy">
+      Simulate the relay-backed host and inspector apps to see how remote commands become local
+      snapshot updates.
+    </p>
+  </div>
+
+  <msw-panel-remote-demo>
+    <div class="remote-controls">
+      <button data-action="start-relay" type="button">Start relay</button>
+      <button data-action="connect-host" type="button">Connect host</button>
+      <button data-action="connect-inspector" type="button">Connect inspector</button>
+      <button data-action="toggle" type="button">Toggle from inspector</button>
+      <button data-action="request" type="button">Trigger host request</button>
+      <button data-action="reset" type="button">Reset demo</button>
+    </div>
+
+    <div class="remote-grid">
+      <article class="remote-card">
+        <p class="remote-card-label">Relay</p>
+        <strong data-field="relay-status">Offline</strong>
+        <p data-field="relay-copy">Start the relay before sockets can connect.</p>
+      </article>
+
+      <article class="remote-card">
+        <p class="remote-card-label">Host app</p>
+        <strong data-field="host-status">Disconnected</strong>
+        <p data-field="host-copy">The host owns the real controller and MSW runtime.</p>
+      </article>
+
+      <article class="remote-card">
+        <p class="remote-card-label">Inspector app</p>
+        <strong data-field="inspector-status">Disconnected</strong>
+        <p data-field="inspector-copy">The inspector mounts a React panel against a bridge client.</p>
+      </article>
+    </div>
+
+    <div class="remote-state-grid">
+      <div class="remote-state">
+        <span class="remote-state-label">Host handler</span>
+        <strong data-field="host-handler">On</strong>
+      </div>
+      <div class="remote-state">
+        <span class="remote-state-label">Inspector snapshot</span>
+        <strong data-field="inspector-handler">No snapshot</strong>
+      </div>
+      <div class="remote-state">
+        <span class="remote-state-label">Last request</span>
+        <strong data-field="request-result">Not triggered</strong>
+      </div>
+    </div>
+
+    <ol class="remote-log" data-field="log"></ol>
+  </msw-panel-remote-demo>
+</section>
+
+<style>
+  .remote-shell {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    display: grid;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background:
+      radial-gradient(circle at top right, rgba(242, 154, 82, 0.16), transparent 24%),
+      linear-gradient(180deg, rgba(18, 26, 23, 0.96), rgba(13, 17, 16, 0.96));
+  }
+
+  :root[data-theme="light"] .remote-shell {
+    background:
+      radial-gradient(circle at top right, rgba(242, 154, 82, 0.16), transparent 24%),
+      linear-gradient(180deg, rgba(250, 245, 237, 0.98), rgba(244, 238, 230, 0.98));
+  }
+
+  .remote-header {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .remote-eyebrow,
+  .remote-card-label,
+  .remote-state-label {
+    color: var(--sl-color-text-accent);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .remote-header h3 {
+    margin: 0.2rem 0 0;
+  }
+
+  .remote-copy,
+  .remote-card p,
+  .remote-log li {
+    color: var(--sl-color-gray-2);
+  }
+
+  .remote-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .remote-controls button {
+    appearance: none;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    cursor: pointer;
+    font: inherit;
+    padding: 0.55rem 0.9rem;
+  }
+
+  .remote-controls button[data-action="start-relay"] {
+    background: #145b43;
+  }
+
+  .remote-controls button[data-action="toggle"] {
+    background: #b85c27;
+  }
+
+  .remote-grid,
+  .remote-state-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .remote-card,
+  .remote-state {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 0.9rem;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  :root[data-theme="light"] .remote-card,
+  :root[data-theme="light"] .remote-state {
+    border-color: rgba(32, 26, 19, 0.08);
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .remote-card strong,
+  .remote-state strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-top: 0.4rem;
+    color: var(--sl-color-white);
+  }
+
+  :root[data-theme="light"] .remote-card strong,
+  :root[data-theme="light"] .remote-state strong {
+    color: var(--sl-color-white);
+  }
+
+  .remote-log {
+    display: grid;
+    gap: 0.7rem;
+    list-style: decimal;
+    margin: 0;
+    padding-left: 1.35rem;
+  }
+
+  .remote-log li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 0.55rem;
+  }
+
+  :root[data-theme="light"] .remote-log li {
+    border-bottom-color: rgba(32, 26, 19, 0.08);
+  }
+
+  @media (max-width: 900px) {
+    .remote-grid,
+    .remote-state-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script is:inline>
+  class MswPanelRemoteDemo extends HTMLElement {
+    connectedCallback() {
+      this.bindings = {
+        hostCopy: this.querySelector('[data-field="host-copy"]'),
+        hostHandler: this.querySelector('[data-field="host-handler"]'),
+        hostStatus: this.querySelector('[data-field="host-status"]'),
+        inspectorCopy: this.querySelector('[data-field="inspector-copy"]'),
+        inspectorHandler: this.querySelector('[data-field="inspector-handler"]'),
+        inspectorStatus: this.querySelector('[data-field="inspector-status"]'),
+        log: this.querySelector('[data-field="log"]'),
+        relayCopy: this.querySelector('[data-field="relay-copy"]'),
+        relayStatus: this.querySelector('[data-field="relay-status"]'),
+        requestResult: this.querySelector('[data-field="request-result"]'),
+      };
+
+      this.addEventListener("click", (event) => {
+        const target = event.target;
+
+        if (!(target instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const action = target.dataset.action;
+
+        if (!action) {
+          return;
+        }
+
+        this.handleAction(action);
+      });
+
+      this.resetState();
+      this.render();
+    }
+
+    resetState() {
+      this.state = {
+        handlerEnabled: true,
+        hostConnected: false,
+        inspectorConnected: false,
+        inspectorHasSnapshot: false,
+        lastRequest: "Not triggered",
+        log: ["The remote flow is idle. Start the relay first."],
+        relayOnline: false,
+      };
+    }
+
+    log(message) {
+      this.state.log = [message, ...this.state.log].slice(0, 8);
+    }
+
+    handleAction(action) {
+      if (action === "reset") {
+        this.resetState();
+        this.render();
+        return;
+      }
+
+      if (action === "start-relay") {
+        if (this.state.relayOnline) {
+          this.log("The relay is already online and waiting for peers.");
+        } else {
+          this.state.relayOnline = true;
+          this.log("Relay started on ws://localhost:4197 and is ready for session peers.");
+        }
+        this.render();
+        return;
+      }
+
+      if (action === "connect-host") {
+        if (!this.state.relayOnline) {
+          this.log("The host cannot connect before the relay is online.");
+        } else if (this.state.hostConnected) {
+          this.log("The host app is already connected to the relay.");
+        } else {
+          this.state.hostConnected = true;
+          this.log("Host socket opened. The bridge server is now ready to publish snapshots.");
+        }
+        this.render();
+        return;
+      }
+
+      if (action === "connect-inspector") {
+        if (!this.state.relayOnline) {
+          this.log("The inspector cannot connect before the relay is online.");
+        } else if (this.state.inspectorConnected) {
+          this.log("The inspector is already connected.");
+        } else {
+          this.state.inspectorConnected = true;
+          this.log("Inspector bridge client sent hello while the socket was connecting.");
+          this.log("Socket opened, queued hello flushed, and the relay forwarded it to the host.");
+          if (this.state.hostConnected) {
+            this.state.inspectorHasSnapshot = true;
+            this.log("Host bridge server published the current snapshot back to the inspector.");
+          } else {
+            this.log("No host is connected yet, so the inspector still has no remote snapshot.");
+          }
+        }
+        this.render();
+        return;
+      }
+
+      if (action === "toggle") {
+        if (!this.state.hostConnected || !this.state.inspectorConnected) {
+          this.log("Both the host and inspector must be connected before a remote toggle can work.");
+        } else {
+          this.state.handlerEnabled = !this.state.handlerEnabled;
+          this.state.inspectorHasSnapshot = true;
+          this.log("Inspector sent a toggle command through the relay.");
+          this.log(
+            `Host controller applied the change and published a new snapshot: handler is now ${
+              this.state.handlerEnabled ? "enabled" : "disabled"
+            }.`,
+          );
+        }
+        this.render();
+        return;
+      }
+
+      if (action === "request") {
+        if (!this.state.hostConnected) {
+          this.log("There is no connected host runtime to process a request yet.");
+        } else if (this.state.handlerEnabled) {
+          this.state.lastRequest = "Mocked by MSW";
+          this.log("The host request matched the active handler and stayed inside MSW.");
+        } else {
+          this.state.lastRequest = "Bypassed to network";
+          this.log("The host request fell through because the handler was disabled remotely.");
+        }
+        this.render();
+      }
+    }
+
+    render() {
+      this.bindings.relayStatus.textContent = this.state.relayOnline ? "Online" : "Offline";
+      this.bindings.relayCopy.textContent = this.state.relayOnline
+        ? "The relay is forwarding bridge messages between peers in the same session."
+        : "Start the relay before sockets can connect.";
+
+      this.bindings.hostStatus.textContent = this.state.hostConnected ? "Connected" : "Disconnected";
+      this.bindings.hostCopy.textContent = this.state.hostConnected
+        ? "The host owns the real controller and is publishing snapshots."
+        : "The host owns the real controller and MSW runtime.";
+
+      this.bindings.inspectorStatus.textContent = this.state.inspectorConnected
+        ? "Connected"
+        : "Disconnected";
+      this.bindings.inspectorCopy.textContent = this.state.inspectorConnected
+        ? "The inspector is acting as a remote bridge client."
+        : "The inspector mounts a React panel against a bridge client.";
+
+      this.bindings.hostHandler.textContent = this.state.handlerEnabled ? "On" : "Off";
+      this.bindings.inspectorHandler.textContent = this.state.inspectorHasSnapshot
+        ? this.state.handlerEnabled
+          ? "On"
+          : "Off"
+        : "No snapshot";
+      this.bindings.requestResult.textContent = this.state.lastRequest;
+
+      this.bindings.log.innerHTML = this.state.log.map((entry) => `<li>${entry}</li>`).join("");
+    }
+  }
+
+  if (!customElements.get("msw-panel-remote-demo")) {
+    customElements.define("msw-panel-remote-demo", MswPanelRemoteDemo);
+  }
+</script>

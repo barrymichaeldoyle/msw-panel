@@ -1,0 +1,62 @@
+---
+title: Bridge transports
+description: When to use BroadcastChannel, postMessage, WebSocket, or in-memory transports.
+---
+
+import TransportChooser from "../../../components/TransportChooser.astro";
+
+`msw-panel/bridge` separates the controller from the UI by moving snapshots and commands over a transport. The right transport depends on where the UI lives.
+
+<TransportChooser />
+
+## Transport options
+
+### BroadcastChannel
+
+Use `createBroadcastChannelMswPanelBridgeTransport(channelName)` when the host and panel live in browser contexts that can already talk over `BroadcastChannel`.
+
+Best fit:
+
+- same-origin windows or tabs
+- lightweight local development setups
+- no custom serialization requirements
+
+### postMessage
+
+Use `createPostMessageMswPanelBridgeTransport(options)` when the host and panel live across a popup, iframe, or other explicit window boundary.
+
+Best fit:
+
+- popup inspector UIs
+- iframe tooling
+- cases where you want strict control over target window and target origin
+
+Security guidance:
+
+- prefer a concrete `targetOrigin` over `*`
+- provide `expectedSource` when you know the exact peer window
+- use `validateOrigin` if your allowed-origin logic needs to be more specific than direct equality
+
+### WebSocket
+
+Use `createWebSocketMswPanelBridgeTransport(options)` when the UI is outside the current browser process or when a relay is the cleanest way to connect peers.
+
+Best fit:
+
+- remote inspector apps
+- separate local tools connected through a relay
+- workflows where the panel and runtime are not colocated
+
+Behavior notes:
+
+- messages are serialized as JSON strings by default
+- outbound messages are queued while the socket is still connecting
+- closed sockets silently stop accepting outbound messages
+
+### In-memory
+
+Use `createInMemoryMswPanelBridgeTransportPair()` for tests, story-like local development, and adapter work where both ends live in the same process and you do not need a browser or network primitive.
+
+## Shared property
+
+All four transports feed the same bridge server and bridge client APIs. That is the important design point: changing transports does not change the React panel usage.

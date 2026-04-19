@@ -1,0 +1,19 @@
+{
+  "name": "@msw-panel/example-remote-relay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm",
+    "dev": "tsx src/index.ts",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "ws": "8.20.0"
+  },
+  "devDependencies": {
+    "@types/ws": "8.18.1"
+  }
+}

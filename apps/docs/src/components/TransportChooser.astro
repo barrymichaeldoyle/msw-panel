@@ -1,0 +1,195 @@
+<section class="chooser-shell" aria-labelledby="transport-demo-title">
+  <div class="chooser-header">
+    <div>
+      <p class="chooser-eyebrow">Interactive example</p>
+      <h3 id="transport-demo-title">Transport chooser</h3>
+    </div>
+    <p class="chooser-copy">
+      Pick the boundary you need to cross and compare the transport that best fits it.
+    </p>
+  </div>
+
+  <msw-panel-transport-chooser>
+    <div class="chooser-options">
+      <button data-choice="broadcastchannel" type="button">Same-origin browser contexts</button>
+      <button data-choice="postmessage" type="button">Popup or iframe boundary</button>
+      <button data-choice="websocket" type="button">Remote app or relay</button>
+      <button data-choice="memory" type="button">Tests or same-process wiring</button>
+    </div>
+
+    <div class="chooser-result">
+      <p class="chooser-label">Recommended transport</p>
+      <h4 data-field="name">BroadcastChannel</h4>
+      <p data-field="summary"></p>
+      <ul data-field="details"></ul>
+    </div>
+  </msw-panel-transport-chooser>
+</section>
+
+<style>
+  .chooser-shell {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    display: grid;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background:
+      linear-gradient(180deg, rgba(236, 241, 238, 0.92), rgba(255, 255, 255, 0.92)),
+      var(--sl-color-bg);
+  }
+
+  .chooser-header {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .chooser-eyebrow,
+  .chooser-label {
+    color: var(--sl-color-text-accent);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .chooser-header h3,
+  .chooser-result h4 {
+    margin: 0.2rem 0 0;
+  }
+
+  .chooser-copy,
+  .chooser-result p,
+  .chooser-result li {
+    color: var(--sl-color-gray-2);
+  }
+
+  .chooser-options {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chooser-options button {
+    appearance: none;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    color: var(--sl-color-black);
+    cursor: pointer;
+    font: inherit;
+    padding: 0.95rem;
+    text-align: left;
+  }
+
+  .chooser-options button[data-selected="true"] {
+    border-color: #145b43;
+    box-shadow: inset 0 0 0 1px #145b43;
+    background: rgba(20, 91, 67, 0.1);
+  }
+
+  .chooser-result {
+    background: rgba(255, 255, 255, 0.84);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+
+  .chooser-result ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.15rem;
+  }
+
+  @media (max-width: 720px) {
+    .chooser-options {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script is:inline>
+  class MswPanelTransportChooser extends HTMLElement {
+    connectedCallback() {
+      this.name = this.querySelector('[data-field="name"]');
+      this.summary = this.querySelector('[data-field="summary"]');
+      this.details = this.querySelector('[data-field="details"]');
+      this.buttons = Array.from(this.querySelectorAll("[data-choice]"));
+      this.config = {
+        broadcastchannel: {
+          name: "BroadcastChannel",
+          summary:
+            "Best when both ends already live in browser contexts that can speak over the same channel.",
+          details: [
+            "Good default for local browser-only development.",
+            "No custom serialization setup.",
+            "Does not help once the inspector leaves the current browser context family.",
+          ],
+        },
+        postmessage: {
+          name: "postMessage",
+          summary:
+            "Best for explicit window boundaries like popups and iframes where you can name the peer and origin.",
+          details: [
+            "Prefer a concrete targetOrigin over '*'.",
+            "Use expectedSource when you know the exact peer window.",
+            "Best when the host and UI still share a browser environment but not the same execution context.",
+          ],
+        },
+        websocket: {
+          name: "WebSocket",
+          summary:
+            "Best for remote inspectors, relay-backed tools, or any workflow where the UI is outside the current browser process.",
+          details: [
+            "Defaults to JSON serialization.",
+            "Queues outbound messages while the socket is connecting.",
+            "Good fit for the repo's remote inspector example.",
+          ],
+        },
+        memory: {
+          name: "In-memory transport pair",
+          summary:
+            "Best for tests or same-process adapter development when you want bridge semantics without browser or network primitives.",
+          details: [
+            "Useful for deterministic tests.",
+            "Avoids browser APIs entirely.",
+            "Not intended for cross-context communication.",
+          ],
+        },
+      };
+
+      this.addEventListener("click", (event) => {
+        const target = event.target;
+
+        if (!(target instanceof HTMLButtonElement)) {
+          return;
+        }
+
+        const choice = target.dataset.choice;
+
+        if (!choice) {
+          return;
+        }
+
+        this.render(choice);
+      });
+
+      this.render("broadcastchannel");
+    }
+
+    render(choice) {
+      const current = this.config[choice];
+
+      this.name.textContent = current.name;
+      this.summary.textContent = current.summary;
+      this.details.innerHTML = current.details.map((detail) => `<li>${detail}</li>`).join("");
+
+      for (const button of this.buttons) {
+        button.dataset.selected = String(button.dataset.choice === choice);
+      }
+    }
+  }
+
+  if (!customElements.get("msw-panel-transport-chooser")) {
+    customElements.define("msw-panel-transport-chooser", MswPanelTransportChooser);
+  }
+</script>

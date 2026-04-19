@@ -1,0 +1,39 @@
+---
+title: MSW Panel
+description: Framework-agnostic devtools for Mock Service Worker.
+template: splash
+hero:
+  tagline: Inspect registered MSW handlers and toggle them on or off without changing your existing setup.
+  actions:
+    - text: Get started
+      link: guides/getting-started/
+      icon: right-arrow
+    - text: How it works
+      link: concepts/overview/
+      icon: right-arrow
+      variant: minimal
+---
+
+Add two packages to your existing MSW setup:
+
+```bash
+npm install msw-panel
+```
+
+```tsx
+import { createMswPanelController } from "msw-panel";
+import { MswPanel } from "msw-panel/react";
+
+const controller = createMswPanelController({ runtime: worker });
+
+function App() {
+  return (
+    <>
+      <Routes />
+      <MswPanel controller={controller} />
+    </>
+  );
+}
+```
+
+A floating button appears in the corner. Click it to open the panel and toggle any handler on or off. Adapters for Vue, Svelte, and other frameworks are coming soon.
