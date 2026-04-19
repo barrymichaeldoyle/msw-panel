@@ -2,8 +2,6 @@ import { setupWorker } from "msw/browser";
 
 import { handlers } from "./handlers";
 
-export { handlers };
-
 export const worker = setupWorker(...handlers);
 
 type HandlersUpdateListener = (nextHandlers: typeof handlers) => void;

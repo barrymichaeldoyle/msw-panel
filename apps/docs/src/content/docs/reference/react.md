@@ -18,14 +18,14 @@ interface MswPanelProps {
 
 ## Props
 
-| Prop | Default | Description |
-|------|---------|-------------|
-| `controller` | — | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`. |
-| `defaultOpen` | `false` | When `true`, the panel opens expanded on first render instead of showing the collapsed trigger button. |
-| `position` | `"bottom-right"` | Corner of the viewport to anchor the panel. |
-| `showCount` | `true` | When `false`, hides the numeric badge on the collapsed trigger button. |
-| `theme` | `"dark"` | Visual theme for the panel UI. |
-| `title` | `"MSW Panel"` | Heading shown inside the open panel. |
+| Prop          | Default          | Description                                                                                            |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------ |
+| `controller`  | —                | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`.      |
+| `defaultOpen` | `false`          | When `true`, the panel opens expanded on first render instead of showing the collapsed trigger button. |
+| `position`    | `"bottom-right"` | Corner of the viewport to anchor the panel.                                                            |
+| `showCount`   | `true`           | When `false`, hides the numeric badge on the collapsed trigger button.                                 |
+| `theme`       | `"dark"`         | Visual theme for the panel UI.                                                                         |
+| `title`       | `"MSW Panel"`    | Heading shown inside the open panel.                                                                   |
 
 ## Behavior
 

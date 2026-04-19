@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "msw-panel": "workspace:*",
-    "msw": "2.13.4"
+    "msw": "2.13.4",
+    "msw-panel": "workspace:*"
   }
 }

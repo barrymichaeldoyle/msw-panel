@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/knip/schema.json",
+  "ignoreIssues": {
+    "packages/core/package.json": ["optionalPeerDependencies"]
+  },
   "workspaces": {
     "packages/react": {
       "project": ["src/**/*.tsx"]

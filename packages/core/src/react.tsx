@@ -1,11 +1,7 @@
 import { useState, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 
-import type {
-  MswPanelController,
-  MswPanelHandlerSnapshot,
-  MswPanelSnapshot,
-} from "./index.js";
+import type { MswPanelController, MswPanelHandlerSnapshot, MswPanelSnapshot } from "./index.js";
 
 export type PanelPosition = "bottom-right" | "bottom-left" | "top-right" | "top-left";
 export type PanelTheme = "dark" | "light";
@@ -146,8 +142,11 @@ export function MswPanel({
               </div>
               <p style={{ ...emptyTitleStyle, ...panelTheme.emptyTitle }}>No handlers registered</p>
               <p style={{ ...emptyBodyStyle, ...panelTheme.emptyBody }}>
-                Pass handlers to <code style={{ ...inlineCodeStyle, ...panelTheme.inlineCode }}>createMswPanelController</code> to
-                see them here.
+                Pass handlers to{" "}
+                <code style={{ ...inlineCodeStyle, ...panelTheme.inlineCode }}>
+                  createMswPanelController
+                </code>{" "}
+                to see them here.
               </p>
             </div>
           ) : (
@@ -232,7 +231,12 @@ function HandlerRow({ handler, onToggle, theme }: HandlerRowProps) {
   const usageLabel = handler.used ? "used" : "idle";
 
   return (
-    <li style={{ ...rowStyle, ...theme.rowBorder, ...(handler.used ? null : theme.rowUnused) }}>
+    <li
+      data-handler-id={handler.id}
+      data-handler-method={handler.method ?? undefined}
+      data-handler-path={handler.path ?? undefined}
+      style={{ ...rowStyle, ...theme.rowBorder, ...(handler.used ? null : theme.rowUnused) }}
+    >
       <div style={rowMainStyle}>
         <div style={rowMetaStyle}>
           {badge}
