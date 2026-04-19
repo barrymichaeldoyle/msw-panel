@@ -11,7 +11,7 @@ export function App() {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/user`);
+      const response = await fetch(`${apiBaseUrl}/api/users/1`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);

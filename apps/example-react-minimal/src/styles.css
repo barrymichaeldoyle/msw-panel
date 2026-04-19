@@ -1,0 +1,74 @@
+:root {
+  color: #18212d;
+  font-family: "Sora", "Avenir Next", sans-serif;
+  line-height: 1.5;
+  background:
+    radial-gradient(circle at top left, rgba(89, 173, 255, 0.22), transparent 24rem),
+    linear-gradient(180deg, #f6fbff 0%, #eef4fb 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button {
+  background: #18212d;
+  border: 0;
+  border-radius: 999px;
+  color: #f8fbff;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.75rem 1.05rem;
+}
+
+code {
+  background: rgba(24, 33, 45, 0.08);
+  border-radius: 0.35rem;
+  padding: 0.1rem 0.3rem;
+}
+
+.app-shell {
+  margin: 0 auto;
+  max-width: 56rem;
+  padding: 3rem 1rem 8rem;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  margin-top: 1rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(24, 33, 45, 0.08);
+  border-radius: 1.25rem;
+  box-shadow: 0 14px 40px rgba(38, 74, 116, 0.08);
+  padding: 1.25rem;
+}
+
+.card h1,
+.card h2,
+.card p {
+  margin-top: 0;
+}
+
+.eyebrow {
+  color: #4a6a94;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+.lede {
+  color: #4c5f78;
+  max-width: 44rem;
+}

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "noEmit": true,
+    "paths": {
+      "msw-panel": ["../../packages/core/src/index.ts"],
+      "msw-panel/react": ["../../packages/core/src/react.tsx"],
+      "msw-panel/bridge": ["../../packages/core/src/bridge.ts"]
+    },
+    "types": ["vite/client"]
+  },
+  "include": ["src", "vite.config.ts"]
+}

@@ -28,9 +28,6 @@
   "[typescriptreact]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "cSpell.words": [
-    "oxfmt",
-    "oxlint"
-  ],
+  "cSpell.words": ["oxfmt", "oxlint"],
   "typescript.tsdk": "node_modules/typescript/lib"
 }

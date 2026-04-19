@@ -1,18 +1,25 @@
 {
-  "name": "@msw-panel/example-remote-inspector",
+  "name": "@msw-panel/example-react-minimal",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "dev:e2e": "vite --host 127.0.0.1 --port 4174",
     "lint": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "msw": "2.13.4",
     "msw-panel": "workspace:*",
     "react": "19.2.5",
     "react-dom": "19.2.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
