@@ -116,4 +116,46 @@ describe("MswPanel", () => {
 
     await view.unmount();
   });
+
+  it("uses tabular numerals for count badges and summary stats", async () => {
+    const closedView = await renderPanel({
+      activeHandlers: 10,
+      disabledHandlers: 1,
+      handlers: [],
+    });
+
+    const triggerBadge = closedView.container.querySelector('[data-msw-panel-count="trigger-badge"]');
+    expect(triggerBadge).not.toBeNull();
+    expect((triggerBadge as HTMLElement).style.fontVariantNumeric).toBe("tabular-nums");
+
+    await closedView.unmount();
+
+    const openView = await renderPanel(
+      {
+        activeHandlers: 10,
+        disabledHandlers: 1,
+        handlers: [
+          {
+            enabled: true,
+            id: "request:get:/users",
+            kind: "http",
+            label: "GET /api/users",
+            method: "GET",
+            path: "https://msw-panel.test/api/users",
+            used: false,
+          },
+        ],
+      },
+      { defaultOpen: true },
+    );
+
+    const summary = openView.container.querySelector('[data-msw-panel-count-group="summary"]');
+    expect(summary).not.toBeNull();
+    expect((summary as HTMLElement).style.fontVariantNumeric).toBe("tabular-nums");
+    expect(
+      Array.from(openView.container.querySelectorAll("[data-msw-panel-count]")).map((element) => element.textContent),
+    ).toEqual(["10 enabled", "1 disabled", "0 used"]);
+
+    await openView.unmount();
+  });
 });

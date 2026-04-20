@@ -174,7 +174,10 @@ function MswPanelInner({
       >
         <SlidersIcon size={24} />
         {showCount && snapshot.activeHandlers > 0 && !isOpen ? (
-          <span style={{ ...triggerBadgeStyle, ...panelTheme.triggerBadge }}>
+          <span
+            data-msw-panel-count="trigger-badge"
+            style={{ ...triggerBadgeStyle, ...panelTheme.triggerBadge }}
+          >
             {snapshot.activeHandlers}
           </span>
         ) : null}
@@ -266,10 +269,10 @@ function PanelContent({
         )}
       </div>
 
-      <div style={{ ...summaryStyle, ...theme.summary }}>
-        <span>{snapshot.activeHandlers} enabled</span>
-        <span>{snapshot.disabledHandlers} disabled</span>
-        <span>{usedHandlers} used</span>
+      <div data-msw-panel-count-group="summary" style={{ ...summaryStyle, ...theme.summary }}>
+        <span data-msw-panel-count="enabled">{snapshot.activeHandlers} enabled</span>
+        <span data-msw-panel-count="disabled">{snapshot.disabledHandlers} disabled</span>
+        <span data-msw-panel-count="used">{usedHandlers} used</span>
       </div>
 
       <div style={toolbarStyle}>
@@ -698,6 +701,7 @@ const titleStyle: CSSProperties = {
 
 const summaryStyle: CSSProperties = {
   display: "flex",
+  fontVariantNumeric: "tabular-nums",
   fontSize: "0.8rem",
   gap: "0.75rem",
   marginTop: "0.75rem",
@@ -857,6 +861,7 @@ const triggerBadgeStyle: CSSProperties = {
   alignItems: "center",
   borderRadius: "999px",
   display: "flex",
+  fontVariantNumeric: "tabular-nums",
   fontSize: "0.6rem",
   fontWeight: 700,
   height: "1.1rem",
