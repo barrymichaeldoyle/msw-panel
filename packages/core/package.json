@@ -23,6 +23,19 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "react/lazy": [
+        "./dist/react-lazy.d.ts"
+      ],
+      "bridge": [
+        "./dist/bridge.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -43,19 +56,6 @@
       "types": "./dist/bridge.d.ts",
       "import": "./dist/bridge.js",
       "require": "./dist/bridge.cjs"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "react": [
-        "./dist/react.d.ts"
-      ],
-      "react/lazy": [
-        "./dist/react-lazy.d.ts"
-      ],
-      "bridge": [
-        "./dist/bridge.d.ts"
-      ]
     }
   },
   "scripts": {
