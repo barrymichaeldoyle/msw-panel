@@ -14,11 +14,11 @@ hero:
       variant: minimal
 ---
 
+import PackageManagerTabs from "../../components/PackageManagerTabs.astro";
+
 Add two packages to your existing MSW setup:
 
-```bash
-npm install msw-panel
-```
+<PackageManagerTabs packageName="msw-panel" dev />
 
 ```tsx
 import { createMswPanelController } from "msw-panel";

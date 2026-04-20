@@ -5,10 +5,11 @@ Framework-agnostic devtools for [Mock Service Worker](https://mswjs.io). Inspect
 ## Install
 
 ```sh
-npm install msw-panel
+npm install -D msw-panel
 ```
 
-MSW 2.x must be installed as a peer dependency.
+> [!NOTE]
+> `msw-panel` expects MSW 2.x to already be installed in your project as a peer dependency.
 
 ## Quick start
 

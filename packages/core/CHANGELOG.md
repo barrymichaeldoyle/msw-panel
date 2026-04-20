@@ -1,5 +1,11 @@
 # msw-panel
 
+## 0.1.4
+
+### Patch Changes
+
+- Update the published package README to improve install guidance and peer dependency documentation.
+
 ## 0.1.3
 
 ### Patch Changes

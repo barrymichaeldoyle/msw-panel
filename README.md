@@ -7,7 +7,7 @@ Inspect the handlers already registered with MSW and toggle them on or off — w
 ## Install
 
 ```sh
-npm install msw-panel
+npm install -D msw-panel
 ```
 
 → [Full documentation](https://barrymichaeldoyle.github.io/msw-panel)

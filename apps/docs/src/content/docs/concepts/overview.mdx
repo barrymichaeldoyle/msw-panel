@@ -3,15 +3,15 @@ title: Overview
 description: What msw-panel is and how it fits into your MSW setup.
 ---
 
+import PackageManagerTabs from "../../../components/PackageManagerTabs.astro";
+
 `msw-panel` adds a floating devtools panel to any app that already uses Mock Service Worker. It lets you inspect registered handlers and toggle them on or off without changing your MSW setup.
 
 ## The common case
 
 You have MSW set up. You want a UI to toggle handlers during development. That is the whole thing:
 
-```bash
-npm install msw-panel
-```
+<PackageManagerTabs packageName="msw-panel" dev />
 
 ```tsx
 import { createMswPanelController } from "msw-panel";
