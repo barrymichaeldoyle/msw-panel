@@ -23,7 +23,7 @@
     "lint:fix": "oxlint . --fix",
     "lint:ox": "oxlint .",
     "changeset": "changeset",
-    "version": "changeset version",
+    "changeset:version": "changeset version",
     "release": "pnpm build && changeset publish",
     "pp": "pnpm patch-pulse",
     "pp:i": "pnpm patch-pulse -i",
