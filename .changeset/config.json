@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@msw-panel/docs",
+    "@msw-panel/example-node",
+    "@msw-panel/example-react",
+    "@msw-panel/example-react-minimal",
+    "@msw-panel/example-remote-inspector",
+    "@msw-panel/example-remote-relay"
+  ]
+}

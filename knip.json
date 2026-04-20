@@ -1,12 +1,10 @@
 {
   "$schema": "./node_modules/knip/schema.json",
+  "ignoreDependencies": ["react", "react-dom"],
   "ignoreIssues": {
     "packages/core/package.json": ["optionalPeerDependencies"]
   },
   "workspaces": {
-    "packages/react": {
-      "project": ["src/**/*.tsx"]
-    },
     "apps/example-react": {
       "project": ["src/**/*.ts", "src/**/*.tsx"]
     },

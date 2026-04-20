@@ -24,16 +24,16 @@ interface MswPanelProps {
 
 ### Props
 
-| Prop          | Default          | Description                                                                                                                       |
-| ------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `controller`  | —                | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing.    |
-| `defaultOpen` | `false`          | When `true`, the panel opens expanded on first render.                                                                            |
-| `panelSide`   | inferred         | Which side of the trigger button the panel expands toward. Defaults to `"top"` for bottom-anchored positions and vice versa.      |
-| `position`    | `"bottom-right"` | Corner of the viewport to anchor the trigger button.                                                                              |
-| `shadow`      | `false`          | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                                |
-| `showCount`   | `true`           | When `false`, hides the numeric badge on the trigger button.                                                                      |
-| `theme`       | `"dark"`         | Visual theme for the panel UI.                                                                                                    |
-| `title`       | `"MSW Panel"`    | Heading shown inside the open panel.                                                                                              |
+| Prop          | Default          | Description                                                                                                                    |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `controller`  | —                | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing. |
+| `defaultOpen` | `false`          | When `true`, the panel opens expanded on first render.                                                                         |
+| `panelSide`   | inferred         | Which side of the trigger button the panel expands toward. Defaults to `"top"` for bottom-anchored positions and vice versa.   |
+| `position`    | `"bottom-right"` | Corner of the viewport to anchor the trigger button.                                                                           |
+| `shadow`      | `false`          | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                             |
+| `showCount`   | `true`           | When `false`, hides the numeric badge on the trigger button.                                                                   |
+| `theme`       | `"dark"`         | Visual theme for the panel UI.                                                                                                 |
+| `title`       | `"MSW Panel"`    | Heading shown inside the open panel.                                                                                           |
 
 ---
 
@@ -59,18 +59,14 @@ interface MswPanelEmbeddedProps {
 | ------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `controller` | —             | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing. |
 | `shadow`     | `false`       | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                             |
-| `style`      | —             | Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc.                                      |
+| `style`      | —             | Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc.                                       |
 | `theme`      | `"dark"`      | Visual theme for the panel UI.                                                                                                 |
 | `title`      | `"MSW Panel"` | Heading shown at the top of the panel.                                                                                         |
 
 ### Example
 
 ```tsx
-<MswPanelEmbedded
-  controller={controller}
-  style={{ height: "500px" }}
-  theme="light"
-/>
+<MswPanelEmbedded controller={controller} style={{ height: "500px" }} theme="light" />
 ```
 
 ---
@@ -83,7 +79,7 @@ Import from `msw-panel/react/lazy` to code-split the panel out of your initial b
 import { MswPanel } from "msw-panel/react/lazy";
 
 // Drop-in replacement — loads asynchronously
-<MswPanel controller={controller} />
+<MswPanel controller={controller} />;
 ```
 
 ---

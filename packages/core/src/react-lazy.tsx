@@ -22,4 +22,10 @@ export function MswPanelEmbedded(props: MswPanelEmbeddedProps) {
   );
 }
 
-export type { MswPanelEmbeddedProps, MswPanelProps, PanelPosition, PanelSide, PanelTheme } from "./react.js";
+export type {
+  MswPanelEmbeddedProps,
+  MswPanelProps,
+  PanelPosition,
+  PanelSide,
+  PanelTheme,
+} from "./react.js";

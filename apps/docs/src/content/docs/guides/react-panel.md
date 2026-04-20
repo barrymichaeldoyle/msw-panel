@@ -54,7 +54,7 @@ Use `MswPanelEmbedded` when you want the panel to live inline rather than floati
 ```tsx
 import { MswPanelEmbedded } from "msw-panel/react";
 
-<MswPanelEmbedded controller={controller} style={{ height: "500px" }} />
+<MswPanelEmbedded controller={controller} style={{ height: "500px" }} />;
 ```
 
 ## Lazy loading
@@ -64,7 +64,7 @@ To split the panel out of your initial bundle entirely, import from `msw-panel/r
 ```tsx
 import { MswPanel } from "msw-panel/react/lazy";
 
-<MswPanel controller={controller} />
+<MswPanel controller={controller} />;
 ```
 
 ## Shadow DOM isolation

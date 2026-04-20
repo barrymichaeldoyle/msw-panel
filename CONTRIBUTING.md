@@ -21,7 +21,8 @@ go straight to a PR.
 ## Repository layout
 
 - `packages/core`
-  Publishable package currently released as `msw-panel`
+  Publishable package released as `msw-panel`. Exports `msw-panel`,
+  `msw-panel/react`, `msw-panel/react/lazy`, and `msw-panel/bridge`.
 - `apps/docs`
   Astro documentation site
 - `apps/example-*`
@@ -70,8 +71,7 @@ pnpm fmt:check
 - Keep PRs focused. Avoid bundling unrelated cleanup.
 - Add or update tests when behavior changes.
 - Preserve the current package boundaries unless the change is discussed first.
-- Prefer additive API changes over breaking ones while the package surface is
-  still settling.
+- Prefer additive API changes over breaking ones while the package surface is still settling.
 - Update docs when user-facing behavior, setup, or examples change.
 
 ## Pull request checklist
@@ -81,13 +81,29 @@ Before opening a PR, make sure you have:
 - Run the relevant tests for your change
 - Run linting and type-checking
 - Updated docs or examples if needed
+- Added a changeset (see below) if the change affects the published package
 - Linked the issue, if one exists
 
-## Release notes
+## Release process
 
-There is no contributor-facing release workflow yet beyond standard pull
-requests to `main`. If a change needs package publication or versioning work,
-call that out in the PR description so it can be handled deliberately.
+This project uses [Changesets](https://github.com/changesets/changesets) for versioning and publishing.
+
+If your PR changes anything in `packages/core` that affects users (new feature,
+bug fix, API change), include a changeset:
+
+```bash
+pnpm changeset
+```
+
+Pick `msw-panel`, choose the bump type (`patch` for fixes, `minor` for new
+features, `major` for breaking changes), and write a one-line summary. Commit
+the generated file in `.changeset/` alongside your code changes.
+
+Changes that do **not** need a changeset: docs-only edits, example app changes,
+CI or tooling changes that don't affect the published package.
+
+Maintainers run `pnpm version` to apply pending changesets and `pnpm release`
+to build and publish to npm.
 
 ## Questions
 
