@@ -1,6 +1,6 @@
 {
   "name": "msw-panel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Devtools panel for Mock Service Worker — inspect and toggle handlers during development",
   "keywords": [
     "devtools",
@@ -43,6 +43,19 @@
       "types": "./dist/bridge.d.ts",
       "import": "./dist/bridge.js",
       "require": "./dist/bridge.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ],
+      "react/lazy": [
+        "./dist/react-lazy.d.ts"
+      ],
+      "bridge": [
+        "./dist/bridge.d.ts"
+      ]
     }
   },
   "scripts": {
