@@ -1,0 +1,5 @@
+{
+  "main": "../dist/bridge.cjs",
+  "module": "../dist/bridge.js",
+  "types": "../dist/bridge.d.ts"
+}

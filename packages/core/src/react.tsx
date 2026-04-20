@@ -17,8 +17,8 @@ export type PanelTheme = "dark" | "light";
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
  */
 export interface MswPanelProps {
-  /** Controller from `createMswPanelController` or a bridge client. Pass `null` to render nothing. */
-  controller: MswPanelController | null;
+  /** Controller from `createMswPanelController` or a bridge client. Pass `null` or `undefined` to render nothing. */
+  controller: MswPanelController | null | undefined;
   /** Open the panel on first render. Defaults to `false`. */
   defaultOpen?: boolean;
   /** Direction the panel expands from the trigger button. Defaults to the natural direction for the chosen corner. */
@@ -41,8 +41,8 @@ export interface MswPanelProps {
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
  */
 export interface MswPanelEmbeddedProps {
-  /** Controller from `createMswPanelController` or a bridge client. Pass `null` to render nothing. */
-  controller: MswPanelController | null;
+  /** Controller from `createMswPanelController` or a bridge client. Pass `null` or `undefined` to render nothing. */
+  controller: MswPanelController | null | undefined;
   /** Render inside a Shadow DOM root to isolate from external CSS resets. */
   shadow?: boolean;
   /** Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc. */
@@ -83,7 +83,7 @@ interface PanelThemeStyles {
  * Floating devtools panel for Mock Service Worker. Renders a fixed trigger button in a
  * viewport corner; clicking it toggles the panel open or closed.
  *
- * Renders nothing in production or when `controller` is `null`.
+ * Renders nothing in production or when `controller` is `null` or `undefined`.
  *
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
  */
@@ -99,7 +99,7 @@ export function MswPanel({ controller, shadow, ...props }: MswPanelProps) {
  * Inline devtools panel for Mock Service Worker. Always expanded — no floating trigger button.
  * Useful for Storybook addons, custom dev dashboards, or any layout where you control placement.
  *
- * Renders nothing in production or when `controller` is `null`.
+ * Renders nothing in production or when `controller` is `null` or `undefined`.
  *
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
  */

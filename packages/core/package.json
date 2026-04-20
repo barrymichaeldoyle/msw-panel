@@ -1,6 +1,6 @@
 {
   "name": "msw-panel",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Devtools panel for Mock Service Worker — inspect and toggle handlers during development",
   "keywords": [
     "devtools",
@@ -17,7 +17,9 @@
     "directory": "packages/core"
   },
   "files": [
-    "dist"
+    "dist",
+    "react",
+    "bridge"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
