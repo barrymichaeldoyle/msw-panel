@@ -41,6 +41,9 @@ cd msw-panel
 pnpm install
 ```
 
+`pnpm install` also configures a local pre-commit hook that runs `pnpm fmt`,
+`pnpm ci:check`, and `pnpm test:e2e` before each commit.
+
 ## Common workflows
 
 Run the main quality checks from the repo root:
@@ -109,3 +112,9 @@ to build and publish to npm.
 
 If you are unsure whether a change is in scope, open an issue first and outline
 the use case, proposed change, and any API impact.
+
+## Issue triage
+
+Maintainers may apply coarse `area:*` labels during triage to make it easier to
+filter issues by the affected product surface. Keep using the issue templates'
+affected-area checklists for the detailed scope.

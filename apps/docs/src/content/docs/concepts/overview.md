@@ -33,7 +33,9 @@ See [Getting started](/guides/getting-started/) for the full setup.
 
 ## Framework adapters
 
-The React adapter (`msw-panel/react`) is the first UI package. Adapters for Vue, Svelte, and other frameworks are planned.
+The React adapter (`msw-panel/react`) is the first supported UI package. Vue
+and Svelte are the planned next first-party adapters. Solid and Angular are
+under consideration after that.
 
 ## Packages
 

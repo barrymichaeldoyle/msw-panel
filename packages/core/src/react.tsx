@@ -167,7 +167,7 @@ function MswPanelInner({
         />
       )}
       <button
-        aria-label={isOpen ? "Close MSW Panel" : "Open MSW Panel"}
+        aria-label={isOpen ? "Hide MSW Panel" : "Open MSW Panel"}
         onClick={() => setIsOpen((prev) => !prev)}
         style={{ ...triggerButtonStyle, ...panelTheme.triggerButton }}
         type="button"

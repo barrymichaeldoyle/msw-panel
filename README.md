@@ -88,6 +88,12 @@ pnpm ci:check
 - A framework-agnostic controller (`packages/core`) means React, Vue, Svelte, or any other UI adapter can be built on the same interface.
 - The bridge transport layer lets a panel UI talk to a controller across a window, iframe, or WebSocket boundary without coupling the React adapter to the transport.
 
+## Framework support
+
+- Supported now: React via `msw-panel/react`
+- Planned first-party adapters: Vue and Svelte
+- Under consideration: Solid and Angular
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
