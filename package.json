@@ -22,6 +22,7 @@
     "lint": "pnpm run lint:ox",
     "lint:fix": "oxlint . --fix",
     "lint:ox": "oxlint .",
+    "prepare": "node scripts/setup-git-hooks.mjs",
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "release": "pnpm build && changeset publish",

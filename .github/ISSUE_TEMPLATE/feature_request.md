@@ -11,6 +11,8 @@ Describe the gap, workflow problem, or user need.
 Describe the change you want to see.
 
 **Affected area**
+Select all that apply. Maintainers use these details to apply coarse `area:*`
+labels during triage.
 
 - [ ] `packages/core`
 - [ ] `apps/docs`

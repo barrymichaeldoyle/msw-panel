@@ -21,8 +21,15 @@ The React panel is the primary supported UI. It works with MSW's browser worker
 
 ## Planned
 
-1. **Framework adapters** — Vue, Svelte, and other framework panel UIs.
+1. **Framework adapters** — first-party Vue and Svelte panel UIs.
+   Track [Vue adapter (#4)](https://github.com/barrymichaeldoyle/msw-panel/issues/4)
+   and [Svelte adapter (#5)](https://github.com/barrymichaeldoyle/msw-panel/issues/5).
 2. **Auto-sync** — lifecycle hooks so runtime-added handlers appear without a manual `sync()`.
 3. **Integration tests** — browser-level tests covering real request fallthrough when a handler is toggled off.
 4. **Remote bridge reconnect** — backoff and reconnect logic for the WebSocket transport.
 5. **`panelSide` left/right** — horizontal panel expansion for the floating panel.
+
+## Under consideration
+
+- [Solid adapter (#6)](https://github.com/barrymichaeldoyle/msw-panel/issues/6)
+- [Angular adapter (#7)](https://github.com/barrymichaeldoyle/msw-panel/issues/7)

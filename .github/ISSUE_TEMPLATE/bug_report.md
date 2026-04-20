@@ -17,6 +17,8 @@ A clear description of the bug.
 What you expected to happen.
 
 **Affected area**
+Select all that apply. Maintainers use these details to apply coarse `area:*`
+labels during triage.
 
 - [ ] `packages/core`
 - [ ] `apps/docs`

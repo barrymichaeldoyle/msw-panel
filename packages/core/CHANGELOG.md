@@ -1,5 +1,11 @@
 # msw-panel
 
+## 0.1.3
+
+### Patch Changes
+
+- 19403d5: Use tabular numerals for the React panel's count badge and summary stats to avoid layout shift when digits change.
+
 ## 0.1.2
 
 ### Patch Changes
