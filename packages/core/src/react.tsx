@@ -1,17 +1,55 @@
-import { useState, useSyncExternalStore } from "react";
-import type { CSSProperties } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import type { MswPanelController, MswPanelHandlerSnapshot, MswPanelSnapshot } from "./index.js";
 
+/** Viewport corner where the floating trigger button is anchored. */
 export type PanelPosition = "bottom-right" | "bottom-left" | "top-right" | "top-left";
+/** Direction the panel expands relative to the trigger button. */
+export type PanelSide = "top" | "bottom";
+/** Built-in visual theme for the panel. */
 export type PanelTheme = "dark" | "light";
 
+/**
+ * Props for the floating `<MswPanel>` component.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
+ */
 export interface MswPanelProps {
-  controller: MswPanelController;
+  /** Controller from `createMswPanelController` or a bridge client. Pass `null` to render nothing. */
+  controller: MswPanelController | null;
+  /** Open the panel on first render. Defaults to `false`. */
   defaultOpen?: boolean;
+  /** Direction the panel expands from the trigger button. Defaults to the natural direction for the chosen corner. */
+  panelSide?: PanelSide;
+  /** Viewport corner to anchor the trigger button. Defaults to `"bottom-right"`. */
   position?: PanelPosition;
+  /** Render inside a Shadow DOM root to isolate from external CSS resets. */
+  shadow?: boolean;
+  /** Show the enabled-handler count badge on the collapsed trigger button. Defaults to `true`. */
   showCount?: boolean;
+  /** Visual theme. Defaults to `"dark"`. */
   theme?: PanelTheme;
+  /** Heading shown inside the open panel. Defaults to `"MSW Panel"`. */
+  title?: string;
+}
+
+/**
+ * Props for the inline `<MswPanelEmbedded>` component.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
+ */
+export interface MswPanelEmbeddedProps {
+  /** Controller from `createMswPanelController` or a bridge client. Pass `null` to render nothing. */
+  controller: MswPanelController | null;
+  /** Render inside a Shadow DOM root to isolate from external CSS resets. */
+  shadow?: boolean;
+  /** Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc. */
+  style?: CSSProperties;
+  /** Visual theme. Defaults to `"dark"`. */
+  theme?: PanelTheme;
+  /** Heading shown at the top of the panel. Defaults to `"MSW Panel"`. */
   title?: string;
 }
 
@@ -41,16 +79,53 @@ interface PanelThemeStyles {
   triggerButton: CSSProperties;
 }
 
-export function MswPanel({
+/**
+ * Floating devtools panel for Mock Service Worker. Renders a fixed trigger button in a
+ * viewport corner; clicking it toggles the panel open or closed.
+ *
+ * Renders nothing in production or when `controller` is `null`.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
+ */
+export function MswPanel({ controller, shadow, ...props }: MswPanelProps) {
+  if (process.env.NODE_ENV === "production" || !controller) {
+    return null;
+  }
+  const inner = <MswPanelInner controller={controller} {...props} />;
+  return shadow ? <ShadowHost>{inner}</ShadowHost> : inner;
+}
+
+/**
+ * Inline devtools panel for Mock Service Worker. Always expanded — no floating trigger button.
+ * Useful for Storybook addons, custom dev dashboards, or any layout where you control placement.
+ *
+ * Renders nothing in production or when `controller` is `null`.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
+ */
+export function MswPanelEmbedded({ controller, shadow, style, ...props }: MswPanelEmbeddedProps) {
+  if (process.env.NODE_ENV === "production" || !controller) {
+    return null;
+  }
+  if (shadow) {
+    return (
+      <ShadowHost style={style}>
+        <MswPanelEmbeddedInner controller={controller} {...props} />
+      </ShadowHost>
+    );
+  }
+  return <MswPanelEmbeddedInner controller={controller} style={style} {...props} />;
+}
+
+function MswPanelInner({
   controller,
   defaultOpen = false,
+  panelSide,
   position = "bottom-right",
   showCount = true,
   theme = "dark",
   title = "MSW Panel",
-}: MswPanelProps) {
-  if (process.env.NODE_ENV === "production") return null;
-
+}: Omit<MswPanelProps, "controller" | "shadow"> & { controller: MswPanelController }) {
   const snapshot = useSyncExternalStore<MswPanelSnapshot>(
     controller.subscribe,
     controller.getSnapshot,
@@ -62,15 +137,101 @@ export function MswPanel({
 
   const isTop = position.startsWith("top");
   const isLeft = position.endsWith("left");
-  const usedHandlers = snapshot.handlers.filter((handler) => handler.used).length;
+  const effectivePanelSide = panelSide ?? (isTop ? "bottom" : "top");
 
   const rootStyle: CSSProperties = {
-    ...panelRootBase,
+    alignItems: isLeft ? "flex-start" : "flex-end",
     bottom: isTop ? undefined : "1.5rem",
+    display: "flex",
+    flexDirection: effectivePanelSide === "top" ? "column-reverse" : "column",
+    gap: "0.5rem",
     left: isLeft ? "1.5rem" : undefined,
+    position: "fixed",
     right: isLeft ? undefined : "1.5rem",
     top: isTop ? "1.5rem" : undefined,
+    width: "min(28rem, calc(100vw - 2rem))",
+    zIndex: 9999,
   };
+
+  return (
+    <aside style={rootStyle}>
+      {isOpen && (
+        <PanelContent
+          controller={controller}
+          filter={filter}
+          onClose={() => setIsOpen(false)}
+          onFilterChange={setFilter}
+          snapshot={snapshot}
+          theme={panelTheme}
+          title={title}
+        />
+      )}
+      <button
+        aria-label={isOpen ? "Close MSW Panel" : "Open MSW Panel"}
+        onClick={() => setIsOpen((prev) => !prev)}
+        style={{ ...triggerButtonStyle, ...panelTheme.triggerButton }}
+        type="button"
+      >
+        <SlidersIcon size={24} />
+        {showCount && snapshot.activeHandlers > 0 && !isOpen ? (
+          <span style={{ ...triggerBadgeStyle, ...panelTheme.triggerBadge }}>
+            {snapshot.activeHandlers}
+          </span>
+        ) : null}
+      </button>
+    </aside>
+  );
+}
+
+function MswPanelEmbeddedInner({
+  controller,
+  style,
+  theme = "dark",
+  title = "MSW Panel",
+}: Omit<MswPanelEmbeddedProps, "controller" | "shadow"> & { controller: MswPanelController }) {
+  const snapshot = useSyncExternalStore<MswPanelSnapshot>(
+    controller.subscribe,
+    controller.getSnapshot,
+    controller.getSnapshot,
+  );
+  const [filter, setFilter] = useState("");
+  const panelTheme = panelThemes[theme];
+
+  return (
+    <PanelContent
+      controller={controller}
+      filter={filter}
+      onFilterChange={setFilter}
+      snapshot={snapshot}
+      style={style}
+      theme={panelTheme}
+      title={title}
+    />
+  );
+}
+
+interface PanelContentProps {
+  controller: MswPanelController;
+  filter: string;
+  onClose?: () => void;
+  onFilterChange: (value: string) => void;
+  snapshot: MswPanelSnapshot;
+  style?: CSSProperties;
+  theme: PanelThemeStyles;
+  title: string;
+}
+
+function PanelContent({
+  controller,
+  filter,
+  onClose,
+  onFilterChange,
+  snapshot,
+  style,
+  theme,
+  title,
+}: PanelContentProps) {
+  const usedHandlers = snapshot.handlers.filter((handler) => handler.used).length;
 
   const filteredHandlers = filter
     ? snapshot.handlers.filter(
@@ -82,134 +243,131 @@ export function MswPanel({
     : snapshot.handlers;
 
   return (
-    <aside style={rootStyle}>
-      {isOpen ? (
-        <div style={{ ...panelFrameStyle, ...panelTheme.frame }}>
-          <div style={panelHeaderStyle}>
-            <div style={headerLeftStyle}>
-              <div style={logoMarkStyle}>
-                <SlidersIcon size={20} />
-              </div>
-              <div>
-                <div style={eyebrowStyle}>Mock controls</div>
-                <strong style={{ ...titleStyle, ...panelTheme.title }}>{title}</strong>
-              </div>
-            </div>
-            <button
-              aria-label="Close MSW Panel"
-              onClick={() => setIsOpen(false)}
-              style={{ ...ghostButtonStyle, ...panelTheme.ghostButton }}
-              type="button"
-            >
-              ✕
-            </button>
+    <div style={{ ...panelFrameStyle, ...theme.frame, ...style }}>
+      <div style={panelHeaderStyle}>
+        <div style={headerLeftStyle}>
+          <div style={logoMarkStyle}>
+            <SlidersIcon size={20} />
           </div>
-
-          <div style={{ ...summaryStyle, ...panelTheme.summary }}>
-            <span>{snapshot.activeHandlers} enabled</span>
-            <span>{snapshot.disabledHandlers} disabled</span>
-            <span>{usedHandlers} used</span>
+          <div>
+            <div style={eyebrowStyle}>Mock controls</div>
+            <strong style={{ ...titleStyle, ...theme.title }}>{title}</strong>
           </div>
-
-          <div style={toolbarStyle}>
-            <button
-              onClick={() => controller.setAllEnabled(true)}
-              style={{ ...actionButtonStyle, ...panelTheme.actionButton }}
-              type="button"
-            >
-              Enable all
-            </button>
-            <button
-              onClick={() => controller.setAllEnabled(false)}
-              style={{ ...actionButtonStyle, ...panelTheme.actionButton }}
-              type="button"
-            >
-              Disable all
-            </button>
-            <button
-              onClick={() => controller.sync()}
-              style={{ ...actionButtonStyle, ...panelTheme.actionButton }}
-              type="button"
-            >
-              Sync
-            </button>
-          </div>
-
-          {snapshot.handlers.length === 0 ? (
-            <div style={emptyStateStyle}>
-              <div style={{ ...emptyIconStyle, ...panelTheme.emptyIcon }}>
-                <SlidersIcon size={32} />
-              </div>
-              <p style={{ ...emptyTitleStyle, ...panelTheme.emptyTitle }}>No handlers registered</p>
-              <p style={{ ...emptyBodyStyle, ...panelTheme.emptyBody }}>
-                Pass handlers to{" "}
-                <code style={{ ...inlineCodeStyle, ...panelTheme.inlineCode }}>
-                  createMswPanelController
-                </code>{" "}
-                to see them here.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div style={searchWrapStyle}>
-                <input
-                  onChange={(e) => setFilter(e.target.value)}
-                  placeholder="Filter handlers…"
-                  style={{ ...searchInputStyle, ...panelTheme.searchInput }}
-                  type="text"
-                  value={filter}
-                />
-                {filter ? (
-                  <button
-                    aria-label="Clear filter"
-                    onClick={() => setFilter("")}
-                    style={{ ...searchClearStyle, ...panelTheme.searchClear }}
-                    type="button"
-                  >
-                    ✕
-                  </button>
-                ) : null}
-              </div>
-
-              {filteredHandlers.length === 0 ? (
-                <p style={{ ...noResultsStyle, ...panelTheme.noResults }}>
-                  No handlers match &ldquo;{filter}&rdquo;
-                </p>
-              ) : (
-                <ul style={listStyle}>
-                  {filteredHandlers.map((handler) => (
-                    <HandlerRow
-                      handler={handler}
-                      key={handler.id}
-                      onToggle={() => controller.toggle(handler.id)}
-                      theme={panelTheme}
-                    />
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
         </div>
-      ) : (
+        {onClose && (
+          <button
+            aria-label="Close MSW Panel"
+            onClick={onClose}
+            style={{ ...ghostButtonStyle, ...theme.ghostButton }}
+            type="button"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      <div style={{ ...summaryStyle, ...theme.summary }}>
+        <span>{snapshot.activeHandlers} enabled</span>
+        <span>{snapshot.disabledHandlers} disabled</span>
+        <span>{usedHandlers} used</span>
+      </div>
+
+      <div style={toolbarStyle}>
         <button
-          aria-label="Open MSW Panel"
-          onClick={() => setIsOpen(true)}
-          style={{
-            ...triggerButtonStyle,
-            ...panelTheme.triggerButton,
-            marginLeft: isLeft ? 0 : "auto",
-          }}
+          onClick={() => controller.setAllEnabled(true)}
+          style={{ ...actionButtonStyle, ...theme.actionButton }}
           type="button"
         >
-          <SlidersIcon size={24} />
-          {showCount && snapshot.activeHandlers > 0 ? (
-            <span style={{ ...triggerBadgeStyle, ...panelTheme.triggerBadge }}>
-              {snapshot.activeHandlers}
-            </span>
-          ) : null}
+          Enable all
         </button>
+        <button
+          onClick={() => controller.setAllEnabled(false)}
+          style={{ ...actionButtonStyle, ...theme.actionButton }}
+          type="button"
+        >
+          Disable all
+        </button>
+        <button
+          onClick={() => controller.sync()}
+          style={{ ...actionButtonStyle, ...theme.actionButton }}
+          type="button"
+        >
+          Sync
+        </button>
+      </div>
+
+      {snapshot.handlers.length === 0 ? (
+        <div style={emptyStateStyle}>
+          <div style={{ ...emptyIconStyle, ...theme.emptyIcon }}>
+            <SlidersIcon size={32} />
+          </div>
+          <p style={{ ...emptyTitleStyle, ...theme.emptyTitle }}>No handlers registered</p>
+          <p style={{ ...emptyBodyStyle, ...theme.emptyBody }}>
+            Pass handlers to{" "}
+            <code style={{ ...inlineCodeStyle, ...theme.inlineCode }}>
+              createMswPanelController
+            </code>{" "}
+            to see them here.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div style={searchWrapStyle}>
+            <input
+              onChange={(e) => onFilterChange(e.target.value)}
+              placeholder="Filter handlers…"
+              style={{ ...searchInputStyle, ...theme.searchInput }}
+              type="text"
+              value={filter}
+            />
+            {filter ? (
+              <button
+                aria-label="Clear filter"
+                onClick={() => onFilterChange("")}
+                style={{ ...searchClearStyle, ...theme.searchClear }}
+                type="button"
+              >
+                ✕
+              </button>
+            ) : null}
+          </div>
+
+          {filteredHandlers.length === 0 ? (
+            <p style={{ ...noResultsStyle, ...theme.noResults }}>
+              No handlers match &ldquo;{filter}&rdquo;
+            </p>
+          ) : (
+            <ul style={listStyle}>
+              {filteredHandlers.map((handler) => (
+                <HandlerRow
+                  handler={handler}
+                  key={handler.id}
+                  onToggle={() => controller.toggle(handler.id)}
+                  theme={theme}
+                />
+              ))}
+            </ul>
+          )}
+        </>
       )}
-    </aside>
+    </div>
+  );
+}
+
+function ShadowHost({ children, style }: { children: ReactNode; style?: CSSProperties }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shadowRoot, setShadowRoot] = useState<ShadowRoot | null>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      setShadowRoot(ref.current.attachShadow({ mode: "open" }));
+    }
+  }, []);
+
+  return (
+    <div ref={ref} style={style}>
+      {shadowRoot ? createPortal(children, shadowRoot) : null}
+    </div>
   );
 }
 
@@ -491,12 +649,6 @@ const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       color: "#6b7280",
     },
   },
-};
-
-const panelRootBase: CSSProperties = {
-  position: "fixed",
-  width: "min(28rem, calc(100vw - 2rem))",
-  zIndex: 9999,
 };
 
 const panelFrameStyle: CSSProperties = {

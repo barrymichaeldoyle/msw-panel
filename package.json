@@ -2,6 +2,11 @@
   "name": "msw-panel",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/barrymichaeldoyle/msw-panel.git"
+  },
   "scripts": {
     "build": "pnpm -r build",
     "dev:docs": "pnpm --filter @msw-panel/docs dev",

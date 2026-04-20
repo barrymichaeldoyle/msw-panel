@@ -4,6 +4,13 @@ Framework-agnostic devtools for Mock Service Worker.
 
 This repo starts with an MVP focused on one job: inspect the handlers already registered with MSW and toggle them on or off without replacing a project's existing mocking setup.
 
+## Project docs
+
+- [Contributing](./CONTRIBUTING.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Security Policy](./SECURITY.md)
+- [Support](./SUPPORT.md)
+
 ## Monorepo layout
 
 - `packages/core`

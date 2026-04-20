@@ -4,22 +4,35 @@ type MswAnyHandler = RequestHandler | WebSocketHandler;
 
 export type MswPanelHandlerKind = "graphql" | "http" | "unknown" | "websocket";
 
+/** A point-in-time description of a single MSW handler and its current state. */
 export interface MswPanelHandlerSnapshot {
+  /** Stable identifier used to persist and re-apply disabled state across reloads. */
   id: string;
+  /** Whether this handler is currently active in the MSW runtime. */
   enabled: boolean;
+  /** Broad category of handler: HTTP request, GraphQL operation, WebSocket, or unknown. */
   kind: MswPanelHandlerKind;
+  /** Human-readable display label shown in the panel. */
   label: string;
+  /** HTTP method (e.g. `"GET"`), or `null` for non-HTTP handlers. */
   method: string | null;
+  /** URL path or pattern, or `null` for non-HTTP handlers. */
   path: string | null;
+  /** `true` if this handler has matched at least one request in the current session. */
   used: boolean;
 }
 
+/** Aggregated view of all handlers and their states, returned by `getSnapshot()`. */
 export interface MswPanelSnapshot {
+  /** Number of handlers currently enabled in the MSW runtime. */
   activeHandlers: number;
+  /** Number of handlers currently disabled. */
   disabledHandlers: number;
+  /** Ordered list of handler snapshots. */
   handlers: MswPanelHandlerSnapshot[];
 }
 
+/** Storage interface for persisting disabled handler IDs across reloads. Compatible with `localStorage`. */
 export interface MswPanelStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
@@ -30,19 +43,43 @@ export interface MswRuntimeController {
   resetHandlers(...nextHandlers: MswAnyHandler[]): void;
 }
 
+/**
+ * Options for `createMswPanelController`.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/guides/getting-started/
+ */
 export interface CreateMswPanelControllerOptions {
+  /**
+   * Explicit handler list to track. Defaults to `runtime.listHandlers()` at
+   * construction time if omitted.
+   */
   handlers?: readonly MswAnyHandler[];
+  /** The MSW browser worker or Node server instance. */
   runtime: MswRuntimeController;
+  /** Storage for persisting disabled state. Pass `window.localStorage` or any compatible implementation. */
   storage?: MswPanelStorage;
+  /** Key used to read and write disabled state in `storage`. */
   storageKey?: string;
 }
 
+/**
+ * Controller that tracks MSW handlers and exposes a subscribable snapshot.
+ * Pass to `<MswPanel>` or a bridge server to wire up the UI.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/reference/core/
+ */
 export interface MswPanelController {
+  /** Returns the current immutable snapshot of all handler states. */
   getSnapshot(): MswPanelSnapshot;
+  /** Enables or disables all handlers at once. */
   setAllEnabled(nextEnabled: boolean): void;
+  /** Enables or disables a single handler by its stable ID. */
   setEnabled(id: string, nextEnabled: boolean): void;
+  /** Subscribes a listener to snapshot changes. Returns an unsubscribe function. */
   subscribe(listener: () => void): () => void;
+  /** Re-reads the runtime's current handler list and rebuilds the snapshot. Call after adding handlers at runtime. */
   sync(): void;
+  /** Toggles the enabled state of a single handler by its stable ID. */
   toggle(id: string): void;
 }
 
@@ -67,6 +104,12 @@ function getUsed(handler: MswAnyHandler): boolean {
   return (handler as { isUsed?: boolean }).isUsed ?? false;
 }
 
+/**
+ * Creates a controller that tracks and manages MSW handler state at runtime.
+ * Pass the returned controller to `<MswPanel>` or a bridge server.
+ *
+ * @see https://barrymichaeldoyle.github.io/msw-panel/guides/getting-started/
+ */
 export function createMswPanelController(
   options: CreateMswPanelControllerOptions,
 ): MswPanelController {

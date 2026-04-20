@@ -7,8 +7,9 @@ import { MswPanel } from "msw-panel/react";
 import { App } from "./App";
 
 async function prepareMocks() {
-  if (!import.meta.env.DEV) return null;
-
+  if (!import.meta.env.DEV) {
+    return null;
+  }
   const { worker } = await import("./mocks/browser");
 
   await worker.start({
@@ -25,6 +26,6 @@ const controller = await prepareMocks();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
-    {controller ? <MswPanel controller={controller} /> : null}
+    <MswPanel controller={controller} />
   </StrictMode>,
 );
