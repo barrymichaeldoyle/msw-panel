@@ -124,7 +124,9 @@ describe("MswPanel", () => {
       handlers: [],
     });
 
-    const triggerBadge = closedView.container.querySelector('[data-msw-panel-count="trigger-badge"]');
+    const triggerBadge = closedView.container.querySelector(
+      '[data-msw-panel-count="trigger-badge"]',
+    );
     expect(triggerBadge).not.toBeNull();
     expect((triggerBadge as HTMLElement).style.fontVariantNumeric).toBe("tabular-nums");
 
@@ -153,7 +155,9 @@ describe("MswPanel", () => {
     expect(summary).not.toBeNull();
     expect((summary as HTMLElement).style.fontVariantNumeric).toBe("tabular-nums");
     expect(
-      Array.from(openView.container.querySelectorAll("[data-msw-panel-count]")).map((element) => element.textContent),
+      Array.from(openView.container.querySelectorAll("[data-msw-panel-count]")).map(
+        (element) => element.textContent,
+      ),
     ).toEqual(["10 enabled", "1 disabled", "0 used"]);
 
     await openView.unmount();
