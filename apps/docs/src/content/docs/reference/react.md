@@ -11,7 +11,7 @@ Floating panel anchored to a corner of the viewport. The trigger button is alway
 import { MswPanel } from "msw-panel/react";
 
 interface MswPanelProps {
-  controller: MswPanelController | null;
+  controller: MswPanelController | null | undefined;
   defaultOpen?: boolean;
   panelSide?: "top" | "bottom";
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
@@ -47,7 +47,7 @@ Inline panel with no floating trigger button — always expanded. Useful for Sto
 import { MswPanelEmbedded } from "msw-panel/react";
 
 interface MswPanelEmbeddedProps {
-  controller: MswPanelController | null;
+  controller: MswPanelController | null | undefined;
   shadow?: boolean;
   showSync?: boolean;
   style?: CSSProperties;

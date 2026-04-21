@@ -74,4 +74,4 @@ Tests:
 const { clientTransport, serverTransport } = createInMemoryMswPanelBridgeTransportPair();
 ```
 
-Read [Bridge transports](/concepts/bridge-transports/) for the tradeoffs behind each option.
+Read [Bridge transports](/msw-panel/concepts/bridge-transports/) for the tradeoffs behind each option.
