@@ -27,6 +27,8 @@ export interface MswPanelProps {
   position?: PanelPosition;
   /** Render inside a Shadow DOM root to isolate from external CSS resets. */
   shadow?: boolean;
+  /** Render even when `process.env.NODE_ENV === "production"`. Intended for hosted demos and docs. */
+  showInProduction?: boolean;
   /** Show the enabled-handler count badge on the collapsed trigger button. Defaults to `true`. */
   showCount?: boolean;
   /** Show the Sync button in the toolbar. Defaults to `false`. */
@@ -47,6 +49,8 @@ export interface MswPanelEmbeddedProps {
   controller: MswPanelController | null | undefined;
   /** Render inside a Shadow DOM root to isolate from external CSS resets. */
   shadow?: boolean;
+  /** Render even when `process.env.NODE_ENV === "production"`. Intended for hosted demos and docs. */
+  showInProduction?: boolean;
   /** Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc. */
   style?: CSSProperties;
   /** Visual theme. Defaults to `"dark"`. */
@@ -94,7 +98,7 @@ interface PanelThemeStyles {
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
  */
 export function MswPanel({ controller, shadow, ...props }: MswPanelProps) {
-  if (process.env.NODE_ENV === "production" || !controller) {
+  if ((!props.showInProduction && process.env.NODE_ENV === "production") || !controller) {
     return null;
   }
   const inner = <MswPanelInner controller={controller} {...props} />;
@@ -110,7 +114,7 @@ export function MswPanel({ controller, shadow, ...props }: MswPanelProps) {
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/react/
  */
 export function MswPanelEmbedded({ controller, shadow, style, ...props }: MswPanelEmbeddedProps) {
-  if (process.env.NODE_ENV === "production" || !controller) {
+  if ((!props.showInProduction && process.env.NODE_ENV === "production") || !controller) {
     return null;
   }
   if (shadow) {

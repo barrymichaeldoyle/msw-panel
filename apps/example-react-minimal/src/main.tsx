@@ -6,8 +6,11 @@ import { MswPanel } from "msw-panel/react";
 
 import { App } from "./App";
 
+const shouldEnablePanelDemo =
+  import.meta.env.DEV || import.meta.env.VITE_SHOW_MSW_PANEL_IN_PRODUCTION === "true";
+
 async function prepareMocks() {
-  if (!import.meta.env.DEV) {
+  if (!shouldEnablePanelDemo) {
     return null;
   }
   const { worker } = await import("./mocks/browser");
@@ -27,6 +30,9 @@ const controller = await prepareMocks();
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
-    <MswPanel controller={controller} />
+    <MswPanel
+      controller={controller}
+      showInProduction={import.meta.env.VITE_SHOW_MSW_PANEL_IN_PRODUCTION === "true"}
+    />
   </StrictMode>,
 );

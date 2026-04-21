@@ -46,11 +46,13 @@ jobs:
         run: pnpm --filter @msw-panel/example-react-minimal build
         env:
           VITE_BASE_URL: /msw-panel/demo/minimal/
+          VITE_SHOW_MSW_PANEL_IN_PRODUCTION: "true"
 
       - name: Build demo (react)
         run: pnpm --filter @msw-panel/example-react build
         env:
           VITE_BASE_URL: /msw-panel/demo/react/
+          VITE_SHOW_MSW_PANEL_IN_PRODUCTION: "true"
 
       - name: Merge demos into docs output
         run: |

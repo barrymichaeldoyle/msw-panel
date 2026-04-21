@@ -16,6 +16,7 @@ interface MswPanelProps {
   panelSide?: "top" | "bottom";
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   shadow?: boolean;
+  showInProduction?: boolean;
   showCount?: boolean;
   showSync?: boolean;
   theme?: "dark" | "light";
@@ -25,17 +26,18 @@ interface MswPanelProps {
 
 ### Props
 
-| Prop          | Default          | Description                                                                                                                     |
-| ------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `controller`  | —                | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing.  |
-| `defaultOpen` | `false`          | When `true`, the panel opens expanded on first render.                                                                          |
-| `panelSide`   | inferred         | Which side of the trigger button the panel expands toward. Defaults to `"top"` for bottom-anchored positions and vice versa.    |
-| `position`    | `"bottom-right"` | Corner of the viewport to anchor the trigger button.                                                                            |
-| `shadow`      | `false`          | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                              |
-| `showCount`   | `true`           | When `false`, hides the numeric badge on the trigger button.                                                                    |
-| `showSync`    | `false`          | When `true`, shows a Sync button in the toolbar. Only needed when handlers are added dynamically at runtime via `worker.use()`. |
-| `theme`       | `"dark"`         | Visual theme for the panel UI.                                                                                                  |
-| `title`       | `"MSW Panel"`    | Heading shown inside the open panel.                                                                                            |
+| Prop               | Default          | Description                                                                                                                     |
+| ------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `controller`       | —                | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing.  |
+| `defaultOpen`      | `false`          | When `true`, the panel opens expanded on first render.                                                                          |
+| `panelSide`        | inferred         | Which side of the trigger button the panel expands toward. Defaults to `"top"` for bottom-anchored positions and vice versa.    |
+| `position`         | `"bottom-right"` | Corner of the viewport to anchor the trigger button.                                                                            |
+| `shadow`           | `false`          | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                              |
+| `showInProduction` | `false`          | When `true`, renders even in production. Intended for hosted demos and docs only.                                               |
+| `showCount`        | `true`           | When `false`, hides the numeric badge on the trigger button.                                                                    |
+| `showSync`         | `false`          | When `true`, shows a Sync button in the toolbar. Only needed when handlers are added dynamically at runtime via `worker.use()`. |
+| `theme`            | `"dark"`         | Visual theme for the panel UI.                                                                                                  |
+| `title`            | `"MSW Panel"`    | Heading shown inside the open panel.                                                                                            |
 
 ---
 
@@ -49,6 +51,7 @@ import { MswPanelEmbedded } from "msw-panel/react";
 interface MswPanelEmbeddedProps {
   controller: MswPanelController | null | undefined;
   shadow?: boolean;
+  showInProduction?: boolean;
   showSync?: boolean;
   style?: CSSProperties;
   theme?: "dark" | "light";
@@ -58,14 +61,15 @@ interface MswPanelEmbeddedProps {
 
 ### Props
 
-| Prop         | Default       | Description                                                                                                                     |
-| ------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `controller` | —             | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing.  |
-| `shadow`     | `false`       | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                              |
-| `showSync`   | `false`       | When `true`, shows a Sync button in the toolbar. Only needed when handlers are added dynamically at runtime via `worker.use()`. |
-| `style`      | —             | Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc.                                        |
-| `theme`      | `"dark"`      | Visual theme for the panel UI.                                                                                                  |
-| `title`      | `"MSW Panel"` | Heading shown at the top of the panel.                                                                                          |
+| Prop               | Default       | Description                                                                                                                     |
+| ------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `controller`       | —             | Required. A `MswPanelController` from `createMswPanelController` or `createMswPanelBridgeClient`, or `null` to render nothing.  |
+| `shadow`           | `false`       | Renders the panel inside a Shadow DOM root to isolate it from external CSS resets.                                              |
+| `showInProduction` | `false`       | When `true`, renders even in production. Intended for hosted demos and docs only.                                               |
+| `showSync`         | `false`       | When `true`, shows a Sync button in the toolbar. Only needed when handlers are added dynamically at runtime via `worker.use()`. |
+| `style`            | —             | Inline styles applied to the panel frame. Use to set `height`, `width`, `overflow`, etc.                                        |
+| `theme`            | `"dark"`      | Visual theme for the panel UI.                                                                                                  |
+| `title`            | `"MSW Panel"` | Heading shown at the top of the panel.                                                                                          |
 
 ### Example
 
@@ -82,7 +86,7 @@ interface MswPanelEmbeddedProps {
 - Each handler row uses a compact meta line for the kind or method badge plus `used`/`idle`, followed by a second line for the endpoint or label.
 - Handler snapshots include MSW's `used` state, so the UI can distinguish handlers that matched a request from ones that are still idle in the current session.
 - The filter input searches across label, method, and path.
-- In production (`process.env.NODE_ENV === "production"`) or when `controller` is `null`, all components return `null`. It is safe to leave `<MswPanel controller={controller} />` in your tree unconditionally — no ternary needed.
+- By default, in production (`process.env.NODE_ENV === "production"`) or when `controller` is `null`, all components return `null`. Pass `showInProduction={true}` only for hosted demos or docs previews.
 - All styling uses inline `CSSProperties`. No `<style>` tags are injected, so CSP nonce configuration is not required.
 
 ## Rendering model

@@ -33,3 +33,5 @@ The React panel is the primary supported UI. It works with MSW's browser worker
 
 - [Solid adapter (#6)](https://github.com/barrymichaeldoyle/msw-panel/issues/6)
 - [Angular adapter (#7)](https://github.com/barrymichaeldoyle/msw-panel/issues/7)
+
+Reactions and comments on these issue threads help determine priority.

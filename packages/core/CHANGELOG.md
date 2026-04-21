@@ -1,5 +1,11 @@
 # msw-panel
 
+## 0.2.1
+
+### Patch Changes
+
+- Add a `showInProduction` React prop for hosted demos, remove the stale `msw-panel/react/lazy` README reference, and align the example app tests with the current auto-loading demo UI.
+
 ## 0.2.0
 
 ### Minor Changes

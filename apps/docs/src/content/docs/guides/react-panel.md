@@ -38,7 +38,7 @@ If your app adds handlers at runtime, call `controller.sync()` after that change
 - `theme` defaults to `"dark"`.
 - `showCount` defaults to `true` and controls the enabled-handler badge on the collapsed trigger button.
 - `panelSide` controls which direction the panel expands from the trigger button (`"top"` or `"bottom"`). Defaults to the natural direction for the chosen corner.
-- In production (`process.env.NODE_ENV === "production"`) or when `controller` is `null`, the component renders nothing. It is safe to leave `<MswPanel controller={controller} />` in your tree unconditionally — no ternary needed.
+- By default, in production (`process.env.NODE_ENV === "production"`) or when `controller` is `null`, the component renders nothing. Pass `showInProduction={true}` only for hosted demos or docs previews.
 - The panel subscribes through `useSyncExternalStore()`.
 - The UI does not need direct access to MSW; it only depends on the controller interface.
 - This is the simplest integration path and should be the default choice unless you need a remote inspector.

@@ -47,27 +47,20 @@ import { MswPanelEmbedded } from "msw-panel/react";
 <MswPanelEmbedded controller={controller} style={{ height: "500px" }} />;
 ```
 
-## Lazy loading
-
-Import from `msw-panel/react/lazy` to split the panel out of your initial bundle:
-
-```tsx
-import { MswPanel } from "msw-panel/react/lazy";
-```
-
 ## Options
 
-| Prop / option | Default          | Description                                                          |
-| ------------- | ---------------- | -------------------------------------------------------------------- |
-| `controller`  | —                | Required. Pass `null` to render nothing.                             |
-| `defaultOpen` | `false`          | Open the panel on first render.                                      |
-| `panelSide`   | inferred         | Which side of the trigger button the panel expands toward.           |
-| `position`    | `"bottom-right"` | Viewport corner for the floating trigger button.                     |
-| `shadow`      | `false`          | Render inside a Shadow DOM root to isolate from external CSS resets. |
-| `showCount`   | `true`           | Show the enabled-handler count badge on the trigger button.          |
-| `showSync`    | `false`          | Show the Sync button (only needed when adding handlers dynamically). |
-| `theme`       | `"dark"`         | `"dark"` or `"light"`.                                               |
-| `title`       | `"MSW Panel"`    | Heading shown inside the open panel.                                 |
+| Prop / option      | Default          | Description                                                          |
+| ------------------ | ---------------- | -------------------------------------------------------------------- |
+| `controller`       | —                | Required. Pass `null` to render nothing.                             |
+| `defaultOpen`      | `false`          | Open the panel on first render.                                      |
+| `panelSide`        | inferred         | Which side of the trigger button the panel expands toward.           |
+| `position`         | `"bottom-right"` | Viewport corner for the floating trigger button.                     |
+| `shadow`           | `false`          | Render inside a Shadow DOM root to isolate from external CSS resets. |
+| `showInProduction` | `false`          | Render in production too. Intended for hosted demos and docs only.   |
+| `showCount`        | `true`           | Show the enabled-handler count badge on the trigger button.          |
+| `showSync`         | `false`          | Show the Sync button (only needed when adding handlers dynamically). |
+| `theme`            | `"dark"`         | `"dark"` or `"light"`.                                               |
+| `title`            | `"MSW Panel"`    | Heading shown inside the open panel.                                 |
 
 ## Controller API
 

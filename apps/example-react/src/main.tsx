@@ -12,8 +12,11 @@ import { MswPanel } from "msw-panel/react";
 
 import { App } from "./App";
 
+const shouldEnablePanelDemo =
+  import.meta.env.DEV || import.meta.env.VITE_SHOW_MSW_PANEL_IN_PRODUCTION === "true";
+
 async function prepareMocks() {
-  if (!import.meta.env.DEV) {
+  if (!shouldEnablePanelDemo) {
     return null;
   }
 
@@ -48,7 +51,12 @@ const panelSession = mockSession ? createPanelBridgeClient(mockSession.controlle
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
-    {panelSession ? <MswPanel controller={panelSession.controller} /> : null}
+    {panelSession ? (
+      <MswPanel
+        controller={panelSession.controller}
+        showInProduction={import.meta.env.VITE_SHOW_MSW_PANEL_IN_PRODUCTION === "true"}
+      />
+    ) : null}
   </StrictMode>,
 );
 

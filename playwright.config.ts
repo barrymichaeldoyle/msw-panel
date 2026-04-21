@@ -19,6 +19,13 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },
+    {
+      command:
+        "VITE_SHOW_MSW_PANEL_IN_PRODUCTION=true pnpm --filter @msw-panel/example-react build && pnpm --filter @msw-panel/example-react exec vite preview --host 127.0.0.1 --port 4175",
+      port: 4175,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
   ],
   projects: [
     {
@@ -35,6 +42,14 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         baseURL: "http://127.0.0.1:4174",
+      },
+    },
+    {
+      name: "example-react-production-demo",
+      testMatch: /example-react-production\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://127.0.0.1:4175",
       },
     },
   ],

@@ -46,6 +46,7 @@ async function renderPanel(
 
 afterEach(() => {
   document.body.innerHTML = "";
+  process.env.NODE_ENV = "test";
 });
 
 describe("MswPanel", () => {
@@ -161,5 +162,32 @@ describe("MswPanel", () => {
     ).toEqual(["10 enabled", "1 disabled", "0 used"]);
 
     await openView.unmount();
+  });
+
+  it("does not render in production unless showInProduction is true", async () => {
+    process.env.NODE_ENV = "production";
+
+    const hiddenView = await renderPanel({
+      activeHandlers: 1,
+      disabledHandlers: 0,
+      handlers: [],
+    });
+
+    expect(hiddenView.container.innerHTML).toBe("");
+
+    await hiddenView.unmount();
+
+    const visibleView = await renderPanel(
+      {
+        activeHandlers: 1,
+        disabledHandlers: 0,
+        handlers: [],
+      },
+      { showInProduction: true },
+    );
+
+    expect(visibleView.container.textContent).toContain("1");
+
+    await visibleView.unmount();
   });
 });
