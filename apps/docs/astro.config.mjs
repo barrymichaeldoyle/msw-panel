@@ -6,6 +6,14 @@ export default defineConfig({
   base: "/msw-panel",
   integrations: [
     starlight({
+      social: [
+        { icon: "github", label: "GitHub", href: "https://github.com/barrymichaeldoyle/msw-panel" },
+        { icon: "npm", label: "npm", href: "https://www.npmjs.com/package/msw-panel" },
+      ],
+      components: {
+        ThemeProvider: "./src/components/ThemeProvider.astro",
+        ThemeSelect: "./src/components/ThemeSelect.astro",
+      },
       customCss: ["./src/styles/docs.css"],
       description: "Framework-agnostic devtools for Mock Service Worker.",
       disable404Route: true,

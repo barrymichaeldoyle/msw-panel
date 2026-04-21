@@ -1,0 +1,11 @@
+---
+// Dark mode only — ignore and clear any stored theme preference.
+---
+
+<script is:inline>
+  window.StarlightThemeProvider = (() => {
+    localStorage.removeItem('starlight-theme');
+    document.documentElement.dataset.theme = 'dark';
+    return { updatePickers() {} };
+  })();
+</script>

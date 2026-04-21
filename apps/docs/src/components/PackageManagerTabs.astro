@@ -1,4 +1,6 @@
 ---
+import { Code } from "@astrojs/starlight/components";
+
 export interface Props {
   packageName: string;
   dev?: boolean;
@@ -31,68 +33,51 @@ const managers = [
 ---
 
 <div class="pm-tabs" data-pm-tabs>
-  <div class="pm-tabs__frame">
-    <div class="pm-tabs__header">
-      <div class="pm-tabs__list" role="tablist" aria-label="Package manager commands">
-        {managers.map((manager, index) => (
-          <button
-            type="button"
-            class="pm-tabs__tab"
-            role="tab"
-            id={`pm-tab-${manager.id}`}
-            aria-controls={`pm-panel-${manager.id}`}
-            aria-selected={index === 0 ? "true" : "false"}
-            tabindex={index === 0 ? "0" : "-1"}
-            data-pm-tab={manager.id}
-            data-pm-command={manager.command}
-          >
-            {manager.label}
-          </button>
-        ))}
-      </div>
-      <button
-        type="button"
-        class="pm-tabs__copy"
-        data-pm-copy={managers[0].command}
-        aria-label="Copy command"
-      >
-        Copy
-      </button>
+  <div class="pm-tabs__header">
+    <div class="pm-tabs__list" role="tablist" aria-label="Package manager commands">
+      {managers.map((manager, index) => (
+        <button
+          type="button"
+          class="pm-tabs__tab"
+          role="tab"
+          id={`pm-tab-${manager.id}`}
+          aria-controls={`pm-panel-${manager.id}`}
+          aria-selected={index === 0 ? "true" : "false"}
+          tabindex={index === 0 ? "0" : "-1"}
+          data-pm-tab={manager.id}
+        >
+          {manager.label}
+        </button>
+      ))}
     </div>
-
-    {managers.map((manager, index) => (
-      <section
-        class="pm-tabs__panel"
-        role="tabpanel"
-        id={`pm-panel-${manager.id}`}
-        aria-labelledby={`pm-tab-${manager.id}`}
-        hidden={index === 0 ? undefined : true}
-        data-pm-panel={manager.id}
-      >
-        <pre class="pm-tabs__pre"><code>{manager.command}</code></pre>
-      </section>
-    ))}
   </div>
+
+  {managers.map((manager, index) => (
+    <div
+      class="pm-tabs__panel"
+      role="tabpanel"
+      id={`pm-panel-${manager.id}`}
+      aria-labelledby={`pm-tab-${manager.id}`}
+      hidden={index === 0 ? undefined : true}
+      data-pm-panel={manager.id}
+    >
+      <Code code={manager.command} lang="sh" frame="none" />
+    </div>
+  ))}
 </div>
 
 <script>
   function initPackageManagerTabs(root: ParentNode): void {
     const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-pm-tab]"));
     const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-pm-panel]"));
-    const copyButton = root.querySelector<HTMLButtonElement>("[data-pm-copy]");
 
     function selectTab(id: string | undefined): void {
       if (!id) return;
-
       for (const tab of tabs) {
         const selected = tab.dataset.pmTab === id;
         tab.setAttribute("aria-selected", selected ? "true" : "false");
         tab.setAttribute("tabindex", selected ? "0" : "-1");
-        if (selected && copyButton) {
-          copyButton.dataset.pmCopy = tab.dataset.pmCommand;
-        }
       }
-
       for (const panel of panels) {
         panel.hidden = panel.dataset.pmPanel !== id;
       }
@@ -109,19 +94,6 @@ const managers = [
         const nextTab = tabs[nextIndex];
         nextTab?.focus();
         selectTab(nextTab?.dataset.pmTab);
-      });
-    }
-
-    if (copyButton) {
-      copyButton.addEventListener("click", async () => {
-        const command = copyButton.dataset.pmCopy;
-        if (!command) return;
-        await navigator.clipboard.writeText(command);
-        const previousLabel = copyButton.textContent;
-        copyButton.textContent = "Copied!";
-        window.setTimeout(() => {
-          copyButton.textContent = previousLabel;
-        }, 1200);
       });
     }
   }

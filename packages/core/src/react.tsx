@@ -29,6 +29,8 @@ export interface MswPanelProps {
   shadow?: boolean;
   /** Show the enabled-handler count badge on the collapsed trigger button. Defaults to `true`. */
   showCount?: boolean;
+  /** Show the Sync button in the toolbar. Defaults to `false`. */
+  showSync?: boolean;
   /** Visual theme. Defaults to `"dark"`. */
   theme?: PanelTheme;
   /** Heading shown inside the open panel. Defaults to `"MSW Panel"`. */
@@ -49,6 +51,8 @@ export interface MswPanelEmbeddedProps {
   style?: CSSProperties;
   /** Visual theme. Defaults to `"dark"`. */
   theme?: PanelTheme;
+  /** Show the Sync button in the toolbar. Defaults to `false`. */
+  showSync?: boolean;
   /** Heading shown at the top of the panel. Defaults to `"MSW Panel"`. */
   title?: string;
 }
@@ -123,6 +127,7 @@ function MswPanelInner({
   panelSide,
   position = "bottom-right",
   showCount = true,
+  showSync = false,
   theme = "dark",
   title = "MSW Panel",
 }: Omit<MswPanelProps, "controller" | "shadow"> & { controller: MswPanelController }) {
@@ -161,6 +166,7 @@ function MswPanelInner({
           filter={filter}
           onClose={() => setIsOpen(false)}
           onFilterChange={setFilter}
+          showSync={showSync}
           snapshot={snapshot}
           theme={panelTheme}
           title={title}
@@ -188,6 +194,7 @@ function MswPanelInner({
 
 function MswPanelEmbeddedInner({
   controller,
+  showSync = false,
   style,
   theme = "dark",
   title = "MSW Panel",
@@ -205,6 +212,7 @@ function MswPanelEmbeddedInner({
       controller={controller}
       filter={filter}
       onFilterChange={setFilter}
+      showSync={showSync}
       snapshot={snapshot}
       style={style}
       theme={panelTheme}
@@ -218,6 +226,7 @@ interface PanelContentProps {
   filter: string;
   onClose?: () => void;
   onFilterChange: (value: string) => void;
+  showSync: boolean;
   snapshot: MswPanelSnapshot;
   style?: CSSProperties;
   theme: PanelThemeStyles;
@@ -229,6 +238,7 @@ function PanelContent({
   filter,
   onClose,
   onFilterChange,
+  showSync,
   snapshot,
   style,
   theme,
@@ -290,13 +300,15 @@ function PanelContent({
         >
           Disable all
         </button>
-        <button
-          onClick={() => controller.sync()}
-          style={{ ...actionButtonStyle, ...theme.actionButton }}
-          type="button"
-        >
-          Sync
-        </button>
+        {showSync && (
+          <button
+            onClick={() => controller.sync()}
+            style={{ ...actionButtonStyle, ...theme.actionButton }}
+            type="button"
+          >
+            Sync
+          </button>
+        )}
       </div>
 
       {snapshot.handlers.length === 0 ? (

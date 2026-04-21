@@ -8,8 +8,7 @@ Framework-agnostic devtools for [Mock Service Worker](https://mswjs.io). Inspect
 npm install -D msw-panel
 ```
 
-> [!NOTE]
-> `msw-panel` expects MSW 2.x to already be installed in your project as a peer dependency.
+> **Note:** `msw-panel` expects MSW 2.x to already be installed in your project as a peer dependency.
 
 ## Quick start
 
@@ -70,6 +69,7 @@ import { MswPanel } from "msw-panel/react/lazy";
 | `position`    | `"bottom-right"` | Viewport corner for the floating trigger button.                     |
 | `shadow`      | `false`          | Render inside a Shadow DOM root to isolate from external CSS resets. |
 | `showCount`   | `true`           | Show the enabled-handler count badge on the trigger button.          |
+| `showSync`    | `false`          | Show the Sync button (only needed when adding handlers dynamically). |
 | `theme`       | `"dark"`         | `"dark"` or `"light"`.                                               |
 | `title`       | `"MSW Panel"`    | Heading shown inside the open panel.                                 |
 

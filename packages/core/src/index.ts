@@ -56,9 +56,12 @@ export interface CreateMswPanelControllerOptions {
   handlers?: readonly MswAnyHandler[];
   /** The MSW browser worker or Node server instance. */
   runtime: MswRuntimeController;
-  /** Storage for persisting disabled state. Pass `window.localStorage` or any compatible implementation. */
-  storage?: MswPanelStorage;
-  /** Key used to read and write disabled state in `storage`. */
+  /**
+   * Storage for persisting disabled state. Defaults to `window.localStorage` when available.
+   * Pass a custom implementation or `null` to disable persistence entirely.
+   */
+  storage?: MswPanelStorage | null;
+  /** Key used to read and write disabled state in `storage`. Defaults to `"msw-panel"`. */
   storageKey?: string;
 }
 
@@ -119,12 +122,20 @@ export function createMswPanelController(
   let cachedSnapshot: MswPanelSnapshot | null = null;
   let pollingTimer: ReturnType<typeof setInterval> | null = null;
 
-  hydrateDisabledState(records, options.storage, options.storageKey);
+  const storage =
+    options.storage !== undefined
+      ? options.storage
+      : typeof window !== "undefined" && window.localStorage
+        ? window.localStorage
+        : null;
+  const storageKey = options.storageKey ?? "msw-panel";
+
+  hydrateDisabledState(records, storage ?? undefined, storageKey);
   applyHandlerState(options.runtime, records);
 
   const emitChange = () => {
     cachedSnapshot = null;
-    persistDisabledState(records, options.storage, options.storageKey);
+    persistDisabledState(records, storage ?? undefined, storageKey);
     for (const listener of listeners) listener();
   };
 
@@ -212,7 +223,7 @@ export function createMswPanelController(
       const nextRecords = buildRecords(options.runtime.listHandlers(), records);
 
       records = nextRecords;
-      hydrateDisabledState(records, options.storage, options.storageKey);
+      hydrateDisabledState(records, storage ?? undefined, storageKey);
       applyHandlerState(options.runtime, records);
 
       if (!areRecordsEqual(previousRecords, records)) {
