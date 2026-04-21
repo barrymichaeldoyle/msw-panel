@@ -75,19 +75,6 @@ interface MswPanelEmbeddedProps {
 
 ---
 
-## Lazy import (`msw-panel/react/lazy`)
-
-Import from `msw-panel/react/lazy` to code-split the panel out of your initial bundle. The components have the same API as the standard exports and include a built-in `Suspense` boundary so no wrapper is needed.
-
-```tsx
-import { MswPanel } from "msw-panel/react/lazy";
-
-// Drop-in replacement — loads asynchronously
-<MswPanel controller={controller} />;
-```
-
----
-
 ## Behavior
 
 - The trigger button stays visible at all times (floating panel only). Clicking it toggles the panel open or closed.

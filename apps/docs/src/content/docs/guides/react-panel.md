@@ -53,16 +53,6 @@ import { MswPanelEmbedded } from "msw-panel/react";
 <MswPanelEmbedded controller={controller} style={{ height: "500px" }} />;
 ```
 
-## Lazy loading
-
-To split the panel out of your initial bundle entirely, import from `msw-panel/react/lazy`. The API is identical:
-
-```tsx
-import { MswPanel } from "msw-panel/react/lazy";
-
-<MswPanel controller={controller} />;
-```
-
 ## Shadow DOM isolation
 
 Pass `shadow` to render the panel inside a Shadow DOM root. This prevents aggressive host-page CSS resets from affecting the panel's appearance:

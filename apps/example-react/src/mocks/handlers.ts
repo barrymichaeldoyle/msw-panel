@@ -27,7 +27,15 @@ export const handlers = [
   }),
   http.get(`${apiBaseUrl}/api/users/:id`, async () => {
     await d();
-    return ok({ id: "1", location: "Cape Town", name: "Barry", role: "Maintainer" });
+    return ok({
+      avatar: "BD",
+      email: "barry@example.dev",
+      id: "1",
+      joinedAt: "2022-03-14",
+      location: "Cape Town, ZA",
+      name: "Barry Michael Doyle",
+      role: "Maintainer",
+    });
   }),
   http.post(`${apiBaseUrl}/api/users`, async () => {
     await d();
@@ -51,8 +59,38 @@ export const handlers = [
     await d();
     return ok({
       projects: [
-        { id: "p1", name: "Docs refresh", status: "active" },
-        { id: "p2", name: "Bridge QA", status: "planned" },
+        {
+          description: "Migrate the docs site to Astro, improve API reference coverage.",
+          id: "p1",
+          members: 2,
+          name: "Docs refresh",
+          status: "active",
+          updatedAt: "2025-04-18",
+        },
+        {
+          description: "End-to-end tests for the WebSocket relay transport.",
+          id: "p2",
+          members: 1,
+          name: "Bridge QA",
+          status: "planned",
+          updatedAt: "2025-04-12",
+        },
+        {
+          description: "Official React hook adapter — useController, useSyncHandlers.",
+          id: "p3",
+          members: 3,
+          name: "React adapter",
+          status: "active",
+          updatedAt: "2025-04-20",
+        },
+        {
+          description: "Community-requested Vue 3 composables for the controller.",
+          id: "p4",
+          members: 2,
+          name: "Vue adapter",
+          status: "review",
+          updatedAt: "2025-04-15",
+        },
       ],
     });
   }),
@@ -98,7 +136,14 @@ export const handlers = [
   // Billing
   http.get(`${apiBaseUrl}/api/billing/subscription`, async () => {
     await d();
-    return ok({ plan: "pro" });
+    return ok({
+      mrr: 49,
+      plan: "Pro",
+      renewsAt: "2025-05-21",
+      seats: 5,
+      status: "active",
+      usedSeats: 3,
+    });
   }),
   http.post(`${apiBaseUrl}/api/billing/subscribe`, async () => {
     await d();
@@ -116,7 +161,38 @@ export const handlers = [
   // Notifications
   http.get(`${apiBaseUrl}/api/notifications`, async () => {
     await d();
-    return ok({ items: [] });
+    return ok({
+      items: [
+        {
+          body: "msw-panel@0.1.5 · all checks green",
+          createdAt: "2025-04-21T08:12:00Z",
+          id: "n1",
+          read: false,
+          title: "CI passed",
+        },
+        {
+          body: "Review bridge transport refactor before Friday",
+          createdAt: "2025-04-20T16:45:00Z",
+          id: "n2",
+          read: false,
+          title: "PR review requested",
+        },
+        {
+          body: "msw-panel@0.1.4 published to npm registry",
+          createdAt: "2025-04-19T11:30:00Z",
+          id: "n3",
+          read: true,
+          title: "Package published",
+        },
+        {
+          body: "#42 Embedded panel overflow on narrow viewports",
+          createdAt: "2025-04-18T09:00:00Z",
+          id: "n4",
+          read: true,
+          title: "Issue closed",
+        },
+      ],
+    });
   }),
   http.post(`${apiBaseUrl}/api/notifications/read-all`, async () => {
     await d();

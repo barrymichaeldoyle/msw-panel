@@ -3,11 +3,10 @@ import { expect, test } from "@playwright/test";
 test("minimal react example works with default panel setup", async ({ page }) => {
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Fetch mocked user" }).click();
-  await expect(page.getByText("Barry · Maintainer · Cape Town")).toBeVisible();
-
-  await page.getByRole("button", { name: "Fetch mocked projects" }).click();
-  await expect(page.getByText("Minimal example (active), Smoke coverage (ready)")).toBeVisible();
+  await expect(page.getByText("Barry Michael Doyle")).toBeVisible();
+  await expect(page.getByText("Cape Town, ZA")).toBeVisible();
+  await expect(page.getByText("msw-panel")).toBeVisible();
+  await expect(page.getByText("smoke-coverage")).toBeVisible();
 
   await page.getByRole("button", { name: "Open MSW Panel" }).click();
   await expect(page.getByText("2 enabled")).toBeVisible();

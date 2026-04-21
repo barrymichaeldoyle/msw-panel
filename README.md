@@ -10,7 +10,7 @@ Inspect the handlers already registered with MSW and toggle them on or off — w
 npm install -D msw-panel
 ```
 
-→ [Full documentation](https://barrymichaeldoyle.github.io/msw-panel)
+→ [Full documentation](https://barrymichaeldoyle.github.io/msw-panel) · [Live demo](https://barrymichaeldoyle.github.io/msw-panel/demo/react/)
 
 ## Monorepo layout
 
@@ -18,7 +18,6 @@ npm install -D msw-panel
 packages/core        → published as msw-panel
                          imports: msw-panel
                                   msw-panel/react
-                                  msw-panel/react/lazy
                                   msw-panel/bridge
 
 apps/docs            → Astro + Starlight documentation site

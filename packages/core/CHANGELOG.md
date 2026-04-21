@@ -1,5 +1,16 @@
 # msw-panel
 
+## 0.2.0
+
+### Minor Changes
+
+- Add refresh banner, fix trigger button visibility, lock panel to fixed dimensions, and make lazy loading the default.
+  - **Refresh banner**: toggling any handler (individually or via Enable all / Disable all) now shows an amber banner with a Refresh button, reminding you that handler changes require a page reload to take effect.
+  - **Trigger button**: the floating trigger button is now hidden while the panel is open — the close button inside the panel is the only way to dismiss it.
+  - **Fixed panel dimensions**: the panel is now a fixed `30rem` tall and always fills the full width of its container. Previously, filtering down to zero results would cause the panel to collapse to a very narrow sliver. The handler list scrolls internally; the empty and no-results states are vertically centred in the available space. `MswPanelEmbedded` users can still override dimensions via the `style` prop.
+  - **Button text colour**: action button text in the dark theme is now white instead of near-black.
+  - **Lazy loading by default**: `msw-panel/react` now ships the lazy-loaded bundle (previously `msw-panel/react/lazy`). The panel is code-split out of your initial bundle automatically with a built-in `Suspense` boundary. The `msw-panel/react/lazy` sub-path has been removed — update any imports to `msw-panel/react`.
+
 ## 0.1.5
 
 ### Patch Changes

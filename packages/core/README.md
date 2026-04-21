@@ -107,4 +107,4 @@ Other transports: `createPostMessageMswPanelBridgeTransport`, `createWebSocketMs
 
 ## Documentation
 
-Full docs at [barrymichaeldoyle.github.io/msw-panel](https://barrymichaeldoyle.github.io/msw-panel).
+Full docs at [barrymichaeldoyle.github.io/msw-panel](https://barrymichaeldoyle.github.io/msw-panel) · [Live demo](https://barrymichaeldoyle.github.io/msw-panel/demo/react/).

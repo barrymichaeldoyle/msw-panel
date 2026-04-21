@@ -42,6 +42,23 @@ jobs:
       - name: Build docs
         run: pnpm --filter @msw-panel/docs build
 
+      - name: Build demo (minimal)
+        run: pnpm --filter @msw-panel/example-react-minimal build
+        env:
+          VITE_BASE_URL: /msw-panel/demo/minimal/
+
+      - name: Build demo (react)
+        run: pnpm --filter @msw-panel/example-react build
+        env:
+          VITE_BASE_URL: /msw-panel/demo/react/
+
+      - name: Merge demos into docs output
+        run: |
+          mkdir -p apps/docs/dist/demo/minimal
+          mkdir -p apps/docs/dist/demo/react
+          cp -r apps/example-react-minimal/dist/. apps/docs/dist/demo/minimal/
+          cp -r apps/example-react/dist/. apps/docs/dist/demo/react/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

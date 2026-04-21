@@ -14,6 +14,7 @@ async function prepareMocks() {
 
   await worker.start({
     onUnhandledRequest: "bypass",
+    serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
   });
 
   return createMswPanelController({

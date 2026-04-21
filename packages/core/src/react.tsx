@@ -68,6 +68,8 @@ interface PanelThemeStyles {
   kindBadge: CSSProperties;
   methodBadge: CSSProperties;
   noResults: CSSProperties;
+  refreshBanner: CSSProperties;
+  refreshButton: CSSProperties;
   rowBorder: CSSProperties;
   pathUsed: CSSProperties;
   pathUnused: CSSProperties;
@@ -172,22 +174,24 @@ function MswPanelInner({
           title={title}
         />
       )}
-      <button
-        aria-label={isOpen ? "Hide MSW Panel" : "Open MSW Panel"}
-        onClick={() => setIsOpen((prev) => !prev)}
-        style={{ ...triggerButtonStyle, ...panelTheme.triggerButton }}
-        type="button"
-      >
-        <SlidersIcon size={24} />
-        {showCount && snapshot.activeHandlers > 0 && !isOpen ? (
-          <span
-            data-msw-panel-count="trigger-badge"
-            style={{ ...triggerBadgeStyle, ...panelTheme.triggerBadge }}
-          >
-            {snapshot.activeHandlers}
-          </span>
-        ) : null}
-      </button>
+      {!isOpen && (
+        <button
+          aria-label="Open MSW Panel"
+          onClick={() => setIsOpen(true)}
+          style={{ ...triggerButtonStyle, ...panelTheme.triggerButton }}
+          type="button"
+        >
+          <SlidersIcon size={24} />
+          {showCount && snapshot.activeHandlers > 0 ? (
+            <span
+              data-msw-panel-count="trigger-badge"
+              style={{ ...triggerBadgeStyle, ...panelTheme.triggerBadge }}
+            >
+              {snapshot.activeHandlers}
+            </span>
+          ) : null}
+        </button>
+      )}
     </aside>
   );
 }
@@ -244,6 +248,7 @@ function PanelContent({
   theme,
   title,
 }: PanelContentProps) {
+  const [needsRefresh, setNeedsRefresh] = useState(false);
   const usedHandlers = snapshot.handlers.filter((handler) => handler.used).length;
 
   const filteredHandlers = filter
@@ -287,14 +292,20 @@ function PanelContent({
 
       <div style={toolbarStyle}>
         <button
-          onClick={() => controller.setAllEnabled(true)}
+          onClick={() => {
+            controller.setAllEnabled(true);
+            setNeedsRefresh(true);
+          }}
           style={{ ...actionButtonStyle, ...theme.actionButton }}
           type="button"
         >
           Enable all
         </button>
         <button
-          onClick={() => controller.setAllEnabled(false)}
+          onClick={() => {
+            controller.setAllEnabled(false);
+            setNeedsRefresh(true);
+          }}
           style={{ ...actionButtonStyle, ...theme.actionButton }}
           type="button"
         >
@@ -311,60 +322,78 @@ function PanelContent({
         )}
       </div>
 
-      {snapshot.handlers.length === 0 ? (
-        <div style={emptyStateStyle}>
-          <div style={{ ...emptyIconStyle, ...theme.emptyIcon }}>
-            <SlidersIcon size={32} />
-          </div>
-          <p style={{ ...emptyTitleStyle, ...theme.emptyTitle }}>No handlers registered</p>
-          <p style={{ ...emptyBodyStyle, ...theme.emptyBody }}>
-            Pass handlers to{" "}
-            <code style={{ ...inlineCodeStyle, ...theme.inlineCode }}>
-              createMswPanelController
-            </code>{" "}
-            to see them here.
-          </p>
+      {needsRefresh && (
+        <div style={{ ...refreshBannerStyle, ...theme.refreshBanner }}>
+          <span>Refresh the page to apply handler changes.</span>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ ...refreshButtonStyle, ...theme.refreshButton }}
+            type="button"
+          >
+            Refresh
+          </button>
         </div>
-      ) : (
-        <>
-          <div style={searchWrapStyle}>
-            <input
-              onChange={(e) => onFilterChange(e.target.value)}
-              placeholder="Filter handlers…"
-              style={{ ...searchInputStyle, ...theme.searchInput }}
-              type="text"
-              value={filter}
-            />
-            {filter ? (
-              <button
-                aria-label="Clear filter"
-                onClick={() => onFilterChange("")}
-                style={{ ...searchClearStyle, ...theme.searchClear }}
-                type="button"
-              >
-                ✕
-              </button>
-            ) : null}
-          </div>
-
-          {filteredHandlers.length === 0 ? (
-            <p style={{ ...noResultsStyle, ...theme.noResults }}>
-              No handlers match &ldquo;{filter}&rdquo;
-            </p>
-          ) : (
-            <ul style={listStyle}>
-              {filteredHandlers.map((handler) => (
-                <HandlerRow
-                  handler={handler}
-                  key={handler.id}
-                  onToggle={() => controller.toggle(handler.id)}
-                  theme={theme}
-                />
-              ))}
-            </ul>
-          )}
-        </>
       )}
+
+      <div style={contentAreaStyle}>
+        {snapshot.handlers.length === 0 ? (
+          <div style={emptyStateStyle}>
+            <div style={{ ...emptyIconStyle, ...theme.emptyIcon }}>
+              <SlidersIcon size={32} />
+            </div>
+            <p style={{ ...emptyTitleStyle, ...theme.emptyTitle }}>No handlers registered</p>
+            <p style={{ ...emptyBodyStyle, ...theme.emptyBody }}>
+              Pass handlers to{" "}
+              <code style={{ ...inlineCodeStyle, ...theme.inlineCode }}>
+                createMswPanelController
+              </code>{" "}
+              to see them here.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div style={searchWrapStyle}>
+              <input
+                onChange={(e) => onFilterChange(e.target.value)}
+                placeholder="Filter handlers…"
+                style={{ ...searchInputStyle, ...theme.searchInput }}
+                type="text"
+                value={filter}
+              />
+              {filter ? (
+                <button
+                  aria-label="Clear filter"
+                  onClick={() => onFilterChange("")}
+                  style={{ ...searchClearStyle, ...theme.searchClear }}
+                  type="button"
+                >
+                  ✕
+                </button>
+              ) : null}
+            </div>
+
+            {filteredHandlers.length === 0 ? (
+              <p style={{ ...noResultsStyle, ...theme.noResults }}>
+                No handlers match &ldquo;{filter}&rdquo;
+              </p>
+            ) : (
+              <ul style={listStyle}>
+                {filteredHandlers.map((handler) => (
+                  <HandlerRow
+                    handler={handler}
+                    key={handler.id}
+                    onToggle={() => {
+                      controller.toggle(handler.id);
+                      setNeedsRefresh(true);
+                    }}
+                    theme={theme}
+                  />
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -496,7 +525,7 @@ const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
     actionButton: {
       background: "#ff6a33",
       border: "1px solid #ff6a33",
-      color: "#111111",
+      color: "#ffffff",
     },
     emptyBody: {
       color: "#8f97ab",
@@ -532,6 +561,15 @@ const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
     },
     noResults: {
       color: "#8f97ab",
+    },
+    refreshBanner: {
+      background: "#1e1505",
+      border: "1px solid #7a5200",
+      color: "#f5c842",
+    },
+    refreshButton: {
+      background: "#f5c842",
+      color: "#1a1000",
     },
     pathUnused: {
       color: "#7d879d",
@@ -619,6 +657,15 @@ const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
     noResults: {
       color: "#6b7280",
     },
+    refreshBanner: {
+      background: "#fffbeb",
+      border: "1px solid #fcd34d",
+      color: "#92400e",
+    },
+    refreshButton: {
+      background: "#92400e",
+      color: "#fffbeb",
+    },
     pathUnused: {
       color: "#9ca3af",
     },
@@ -668,9 +715,21 @@ const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
 
 const panelFrameStyle: CSSProperties = {
   borderRadius: "0.75rem",
+  display: "flex",
+  flexDirection: "column",
   fontFamily: "system-ui, -apple-system, sans-serif",
   fontSize: "0.875rem",
+  height: "30rem",
   padding: "1rem",
+  width: "100%",
+};
+
+const contentAreaStyle: CSSProperties = {
+  display: "flex",
+  flex: 1,
+  flexDirection: "column",
+  marginTop: "0.75rem",
+  minHeight: 0,
 };
 
 const panelHeaderStyle: CSSProperties = {
@@ -725,9 +784,31 @@ const toolbarStyle: CSSProperties = {
   marginTop: "0.75rem",
 };
 
+const refreshBannerStyle: CSSProperties = {
+  alignItems: "center",
+  borderRadius: "0.5rem",
+  display: "flex",
+  fontSize: "0.8rem",
+  gap: "0.75rem",
+  justifyContent: "space-between",
+  marginTop: "0.75rem",
+  padding: "0.5rem 0.75rem",
+};
+
+const refreshButtonStyle: CSSProperties = {
+  border: 0,
+  borderRadius: "0.375rem",
+  cursor: "pointer",
+  flexShrink: 0,
+  font: "inherit",
+  fontSize: "0.75rem",
+  fontWeight: 600,
+  padding: "0.3rem 0.625rem",
+};
+
 const searchWrapStyle: CSSProperties = {
   display: "flex",
-  marginTop: "0.75rem",
+  flexShrink: 0,
   position: "relative",
 };
 
@@ -761,9 +842,10 @@ const noResultsStyle: CSSProperties = {
 const listStyle: CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.18)",
   borderRadius: "0.75rem",
+  flex: 1,
   listStyle: "none",
   margin: "0.75rem 0 0",
-  maxHeight: "22rem",
+  minHeight: 0,
   overflowY: "auto",
   padding: 0,
 };
@@ -912,9 +994,11 @@ const toggleThumbStyle: CSSProperties = {
 const emptyStateStyle: CSSProperties = {
   alignItems: "center",
   display: "flex",
+  flex: 1,
   flexDirection: "column",
   gap: "0.4rem",
-  padding: "2rem 1rem 1.5rem",
+  justifyContent: "center",
+  padding: "1rem",
   textAlign: "center",
 };
 
