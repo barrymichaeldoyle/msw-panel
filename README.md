@@ -36,11 +36,7 @@ import { createMswPanelController } from "msw-panel";
 import { MswPanel } from "msw-panel/react";
 import { worker } from "./mocks/browser";
 
-const controller = createMswPanelController({
-  runtime: worker,
-  storage: window.localStorage,
-  storageKey: "msw-panel:demo",
-});
+const controller = createMswPanelController({ runtime: worker });
 
 export function App() {
   return (

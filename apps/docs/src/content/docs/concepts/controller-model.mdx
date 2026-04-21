@@ -39,12 +39,7 @@ Because the snapshot is plain data, UI adapters and transports do not need to kn
 The host application still owns the runtime and the handler list:
 
 ```ts
-const controller = createMswPanelController({
-  handlers,
-  runtime: worker,
-  storage: window.localStorage,
-  storageKey: "msw-panel:demo",
-});
+const controller = createMswPanelController({ handlers, runtime: worker });
 ```
 
 That means `msw-panel` does not replace your mocking setup. It consumes:

@@ -17,11 +17,7 @@ import { createMswPanelController } from "msw-panel";
 import { MswPanel } from "msw-panel/react";
 import { worker } from "./mocks/browser";
 
-const controller = createMswPanelController({
-  runtime: worker,
-  storage: window.localStorage,
-  storageKey: "msw-panel",
-});
+const controller = createMswPanelController({ runtime: worker });
 
 export function App() {
   return (
@@ -76,7 +72,7 @@ import { MswPanel } from "msw-panel/react/lazy";
 ## Controller API
 
 ```ts
-const controller = createMswPanelController({ runtime, storage, storageKey });
+const controller = createMswPanelController({ runtime });
 
 controller.getSnapshot(); // current handler state
 controller.toggle(id); // toggle one handler

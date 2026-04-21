@@ -10,11 +10,7 @@ Use `msw-panel/react` when the UI can live in the same process as the runtime.
 ```ts
 import { createMswPanelController } from "msw-panel";
 
-const controller = createMswPanelController({
-  runtime: worker,
-  storage: window.localStorage,
-  storageKey: "msw-panel:demo",
-});
+const controller = createMswPanelController({ runtime: worker });
 ```
 
 ## 2. Render the panel
