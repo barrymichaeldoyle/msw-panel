@@ -1,5 +1,12 @@
 # msw-panel
 
+## 0.1.5
+
+### Patch Changes
+
+- 726281a: Hide the Sync button by default. Add a `showSync` prop (defaults to `false`) to `MswPanel` and `MswPanelEmbedded` for users who need it when adding handlers dynamically at runtime.
+- 726281a: Persist handler enabled/disabled state across page reloads by default. `storage` now defaults to `window.localStorage` and `storageKey` defaults to `"msw-panel"`, so no extra configuration is needed. Pass `storage: null` to opt out of persistence.
+
 ## 0.1.4
 
 ### Patch Changes

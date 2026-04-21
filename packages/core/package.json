@@ -1,6 +1,6 @@
 {
   "name": "msw-panel",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Devtools panel for Mock Service Worker — inspect and toggle handlers during development",
   "keywords": [
     "devtools",
