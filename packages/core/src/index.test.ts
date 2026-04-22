@@ -26,14 +26,17 @@ describe("createMswPanelController", () => {
 
     controller.toggle(postsHandlerId);
 
-    expect(runtime.resetHandlers).toHaveBeenLastCalledWith(handlers[0]);
+    const [enabledArg, disabledArg] = (runtime.resetHandlers as ReturnType<typeof vi.fn>).mock
+      .lastCall!;
+    expect(enabledArg).toBe(handlers[0]);
+    expect(disabledArg.run()).toBeNull();
     expect(controller.getSnapshot().handlers).toEqual([
       expect.objectContaining({ enabled: true }),
       expect.objectContaining({ enabled: false, id: postsHandlerId }),
     ]);
   });
 
-  it("hydrates disabled state from storage", () => {
+  it("hydrates disabled state from storage", async () => {
     const handlers = [
       createHandler({
         callFrame: "/src/mocks/handlers.ts:10:5",
@@ -58,13 +61,15 @@ describe("createMswPanelController", () => {
       storageKey: "msw-panel:test",
     });
 
-    expect(runtime.resetHandlers).toHaveBeenLastCalledWith();
+    const [passedHandler] = (runtime.resetHandlers as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(passedHandler).toBeTruthy();
+    expect(await passedHandler.run({})).toBeNull();
     expect(controller.getSnapshot().handlers[0]).toEqual(
       expect.objectContaining({ enabled: false }),
     );
   });
 
-  it("defaults handlers to disabled when defaultEnabled is false", () => {
+  it("defaults handlers to disabled when defaultEnabled is false", async () => {
     const handlers = [
       createHandler({
         header: "GET /user",
@@ -88,7 +93,11 @@ describe("createMswPanelController", () => {
       defaultEnabled: false,
     });
 
-    expect(runtime.resetHandlers).toHaveBeenLastCalledWith();
+    const lastCallArgs = (runtime.resetHandlers as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(lastCallArgs).toHaveLength(2);
+    for (const passedHandler of lastCallArgs) {
+      expect(await passedHandler.run({})).toBeNull();
+    }
     expect(controller.getSnapshot()).toEqual(
       expect.objectContaining({
         activeHandlers: 0,
@@ -183,7 +192,12 @@ describe("createMswPanelController", () => {
       expect.objectContaining({ enabled: false, path: "/posts" }),
       expect.objectContaining({ enabled: true, path: "/user" }),
     ]);
-    expect(runtime.resetHandlers).toHaveBeenLastCalledWith(userHandler);
+    const lastCallArgs = (runtime.resetHandlers as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(lastCallArgs).toHaveLength(2);
+    expect(lastCallArgs.find((h: { run?: () => null }) => !h.run || h.run() !== null)).toBe(
+      userHandler,
+    );
+    expect(lastCallArgs.find((h: { run?: () => null }) => h.run?.() === null)).toBeTruthy();
   });
 
   it("applies defaultEnabled to new handlers discovered during sync", () => {
@@ -221,7 +235,12 @@ describe("createMswPanelController", () => {
       expect.objectContaining({ enabled: true, path: "/user" }),
       expect.objectContaining({ enabled: false, path: "/posts" }),
     ]);
-    expect(runtime.resetHandlers).toHaveBeenLastCalledWith(userHandler);
+    const lastCallArgs = (runtime.resetHandlers as ReturnType<typeof vi.fn>).mock.lastCall!;
+    expect(lastCallArgs).toHaveLength(2);
+    expect(lastCallArgs.find((h: { run?: () => null }) => !h.run || h.run() !== null)).toBe(
+      userHandler,
+    );
+    expect(lastCallArgs.find((h: { run?: () => null }) => h.run?.() === null)).toBeTruthy();
   });
 
   it("returns a stable snapshot reference until controller state changes", () => {

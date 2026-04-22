@@ -263,9 +263,31 @@ function areRecordsEqual(currentRecords: HandlerRecord[], nextRecords: HandlerRe
   });
 }
 
+// Symbol() (not Symbol.for) so TypeScript infers a unique symbol, enabling computed type keys.
+const DISABLED_ORIGINAL = Symbol("msw-panel:disabledOriginal");
+
+type WithDisabledOriginal = { [DISABLED_ORIGINAL]: MswAnyHandler };
+
+function wrapDisabledHandler(handler: MswAnyHandler): MswAnyHandler {
+  const wrapper = Object.create(handler) as MswAnyHandler;
+  // MSW skips a handler when run() returns null, effectively disabling it
+  (wrapper as unknown as { run(): null }).run = () => null;
+  (wrapper as unknown as WithDisabledOriginal)[DISABLED_ORIGINAL] = handler;
+  return wrapper;
+}
+
+function unwrapHandler(handler: MswAnyHandler): MswAnyHandler {
+  return (handler as unknown as Partial<WithDisabledOriginal>)[DISABLED_ORIGINAL] ?? handler;
+}
+
 function applyHandlerState(runtime: MswRuntimeController, records: HandlerRecord[]): void {
+  // Always pass every handler to resetHandlers — disabled ones are wrapped so their run()
+  // returns null (MSW's "didn't match" signal). Passing an empty array would instead trigger
+  // MSW's "restore initial handlers" path, re-enabling everything.
   runtime.resetHandlers(
-    ...records.filter((record) => record.enabled).map((record) => record.handler),
+    ...records.map((record) =>
+      record.enabled ? record.handler : wrapDisabledHandler(record.handler),
+    ),
   );
 }
 
@@ -279,7 +301,8 @@ function buildRecords(
   );
   const identityCount = new Map<string, number>();
 
-  return handlers.map((handler, index) => {
+  return handlers.map((rawHandler, index) => {
+    const handler = unwrapHandler(rawHandler);
     const id = createHandlerId(handler, identityCount);
     const previousRecord = previousRecordsById.get(id);
 
