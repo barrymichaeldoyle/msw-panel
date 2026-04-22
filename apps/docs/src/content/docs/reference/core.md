@@ -13,12 +13,15 @@ interface CreateMswPanelControllerOptions {
   runtime: MswRuntimeController;
   storage?: MswPanelStorage | null;
   storageKey?: string;
+  defaultEnabled?: boolean;
 }
 ```
 
 If `handlers` is omitted, the controller starts from `runtime.listHandlers()`.
 
 **Persistence defaults** — `storage` defaults to `window.localStorage` when available, and `storageKey` defaults to `"msw-panel"`. Disabled handler state is therefore persisted across page reloads automatically with no extra configuration. Pass `storage: null` to opt out of persistence entirely.
+
+**Initial state default** — `defaultEnabled` defaults to `true`. Set `defaultEnabled: false` to start with every handler disabled until the user enables the ones they want. Persisted user state still wins when present.
 
 ## Controller interface
 
@@ -57,5 +60,6 @@ interface MswPanelSnapshot {
 ## Behavior notes
 
 - Disabled state is automatically persisted to `localStorage` under the key `"msw-panel"` and restored on the next page load. Pass `storage: null` to disable persistence.
+- `defaultEnabled` only applies to handlers that do not already have persisted state.
 - `setAllEnabled()` and `setEnabled()` are no-ops when nothing changes.
 - `sync()` rebuilds records from the runtime and preserves enabled state where identities match.

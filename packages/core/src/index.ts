@@ -63,6 +63,11 @@ export interface CreateMswPanelControllerOptions {
   storage?: MswPanelStorage | null;
   /** Key used to read and write disabled state in `storage`. Defaults to `"msw-panel"`. */
   storageKey?: string;
+  /**
+   * Default enabled state for handlers that do not already have persisted user state.
+   * Defaults to `true`.
+   */
+  defaultEnabled?: boolean;
 }
 
 /**
@@ -117,8 +122,9 @@ export function createMswPanelController(
   options: CreateMswPanelControllerOptions,
 ): MswPanelController {
   const listeners = new Set<() => void>();
+  const defaultEnabled = options.defaultEnabled ?? true;
   const trackedHandlers = options.handlers ?? options.runtime.listHandlers();
-  let records = buildRecords(trackedHandlers);
+  let records = buildRecords(trackedHandlers, defaultEnabled);
   let cachedSnapshot: MswPanelSnapshot | null = null;
   let pollingTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -220,7 +226,7 @@ export function createMswPanelController(
     },
     sync() {
       const previousRecords = records;
-      const nextRecords = buildRecords(options.runtime.listHandlers(), records);
+      const nextRecords = buildRecords(options.runtime.listHandlers(), defaultEnabled, records);
 
       records = nextRecords;
       hydrateDisabledState(records, storage ?? undefined, storageKey);
@@ -265,6 +271,7 @@ function applyHandlerState(runtime: MswRuntimeController, records: HandlerRecord
 
 function buildRecords(
   handlers: readonly MswAnyHandler[],
+  defaultEnabled: boolean,
   previousRecords: HandlerRecord[] = [],
 ): HandlerRecord[] {
   const previousRecordsById = new Map(
@@ -277,7 +284,7 @@ function buildRecords(
     const previousRecord = previousRecordsById.get(id);
 
     return {
-      enabled: previousRecord?.enabled ?? true,
+      enabled: previousRecord?.enabled ?? defaultEnabled,
       used: getUsed(handler),
       handler,
       id,

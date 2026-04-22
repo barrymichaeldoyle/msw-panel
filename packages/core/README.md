@@ -37,6 +37,15 @@ const controller = import.meta.env.DEV ? createMswPanelController({ runtime: wor
 <MswPanel controller={controller} />;
 ```
 
+To start with every handler disabled until a user enables specific ones:
+
+```ts
+const controller = createMswPanelController({
+  runtime: worker,
+  defaultEnabled: false,
+});
+```
+
 ## Embedded panel
 
 Use `MswPanelEmbedded` to render the panel inline — useful in Storybook addons or custom dev toolbars:

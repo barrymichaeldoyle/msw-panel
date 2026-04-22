@@ -64,6 +64,43 @@ describe("createMswPanelController", () => {
     );
   });
 
+  it("defaults handlers to disabled when defaultEnabled is false", () => {
+    const handlers = [
+      createHandler({
+        header: "GET /user",
+        method: "GET",
+        path: "/user",
+      }),
+      createHandler({
+        header: "GET /posts",
+        method: "GET",
+        path: "/posts",
+      }),
+    ];
+    const runtime = {
+      listHandlers: vi.fn(() => handlers),
+      resetHandlers: vi.fn(),
+    };
+
+    const controller = createMswPanelController({
+      handlers,
+      runtime,
+      defaultEnabled: false,
+    });
+
+    expect(runtime.resetHandlers).toHaveBeenLastCalledWith();
+    expect(controller.getSnapshot()).toEqual(
+      expect.objectContaining({
+        activeHandlers: 0,
+        disabledHandlers: 2,
+      }),
+    );
+    expect(controller.getSnapshot().handlers).toEqual([
+      expect.objectContaining({ enabled: false, path: "/user" }),
+      expect.objectContaining({ enabled: false, path: "/posts" }),
+    ]);
+  });
+
   it("keeps persisted disabled state when call frames change across reloads", () => {
     const firstHandler = createHandler({
       callFrame: "/src/mocks/handlers.ts:10:5",
@@ -145,6 +182,44 @@ describe("createMswPanelController", () => {
     expect(controller.getSnapshot().handlers).toEqual([
       expect.objectContaining({ enabled: false, path: "/posts" }),
       expect.objectContaining({ enabled: true, path: "/user" }),
+    ]);
+    expect(runtime.resetHandlers).toHaveBeenLastCalledWith(userHandler);
+  });
+
+  it("applies defaultEnabled to new handlers discovered during sync", () => {
+    const userHandler = createHandler({
+      callFrame: "/src/mocks/handlers.ts:10:5",
+      header: "GET /user",
+      method: "GET",
+      path: "/user",
+    });
+    const postsHandler = createHandler({
+      callFrame: "/src/mocks/handlers.ts:20:5",
+      header: "GET /posts",
+      method: "GET",
+      path: "/posts",
+    });
+    let activeHandlers = [userHandler];
+    const runtime = {
+      listHandlers: vi.fn(() => activeHandlers),
+      resetHandlers: vi.fn(),
+    };
+
+    const controller = createMswPanelController({
+      handlers: activeHandlers,
+      runtime,
+      storage: null,
+      defaultEnabled: false,
+    });
+
+    controller.setEnabled(controller.getSnapshot().handlers[0].id, true);
+    activeHandlers = [userHandler, postsHandler];
+
+    controller.sync();
+
+    expect(controller.getSnapshot().handlers).toEqual([
+      expect.objectContaining({ enabled: true, path: "/user" }),
+      expect.objectContaining({ enabled: false, path: "/posts" }),
     ]);
     expect(runtime.resetHandlers).toHaveBeenLastCalledWith(userHandler);
   });

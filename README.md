@@ -47,6 +47,15 @@ export function App() {
 }
 ```
 
+If you prefer to start with every handler off and enable them one by one:
+
+```ts
+const controller = createMswPanelController({
+  runtime: worker,
+  defaultEnabled: false,
+});
+```
+
 ## Local development
 
 Prerequisites: Node.js, pnpm.
