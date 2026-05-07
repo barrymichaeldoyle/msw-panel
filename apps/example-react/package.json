@@ -14,8 +14,8 @@
   "dependencies": {
     "msw": "catalog:",
     "msw-panel": "workspace:*",
-    "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "msw": {
     "workerDirectory": [
