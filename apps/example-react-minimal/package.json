@@ -12,10 +12,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "msw": "2.13.4",
+    "msw": "catalog:",
     "msw-panel": "workspace:*",
-    "react": "19.2.5",
-    "react-dom": "19.2.5"
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
   },
   "msw": {
     "workerDirectory": [

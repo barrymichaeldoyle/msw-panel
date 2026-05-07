@@ -8,6 +8,7 @@
     "url": "https://github.com/barrymichaeldoyle/msw-panel.git"
   },
   "scripts": {
+    "audit": "pnpm audit",
     "build": "pnpm -r build",
     "dev:docs": "pnpm --filter @msw-panel/docs dev",
     "dev:example-node": "pnpm --filter @msw-panel/example-node dev",
@@ -15,7 +16,7 @@
     "dev:example-remote-inspector": "pnpm --filter @msw-panel/example-remote-inspector dev",
     "dev:example-remote-relay": "pnpm --filter @msw-panel/example-remote-relay dev",
     "dev:example-react": "pnpm --filter @msw-panel/example-react dev",
-    "ci:check": "pnpm run fmt:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run knip",
+    "ci:check": "pnpm run audit && pnpm run fmt:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run knip",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt . --check",
     "knip": "knip",
@@ -33,24 +34,24 @@
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.0",
-    "@playwright/test": "^1.59.1",
+    "@changesets/cli": "2.31.0",
+    "@playwright/test": "1.59.1",
     "@types/node": "25.6.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.1",
-    "jsdom": "29.0.2",
-    "knip": "6.5.0",
-    "oxfmt": "0.45.0",
-    "oxlint": "1.60.0",
-    "patch-pulse": "4.1.0",
-    "react": "19.2.5",
-    "react-dom": "19.2.5",
+    "jsdom": "29.1.1",
+    "knip": "6.12.0",
+    "oxfmt": "0.48.0",
+    "oxlint": "1.63.0",
+    "patch-pulse": "4.1.1",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
     "tsup": "8.5.1",
     "tsx": "4.21.0",
     "typescript": "6.0.3",
-    "vite": "8.0.9",
-    "vitest": "4.1.4"
+    "vite": "8.0.11",
+    "vitest": "4.1.5"
   },
-  "packageManager": "pnpm@10.30.3"
+  "packageManager": "pnpm@11.0.8"
 }

@@ -13,12 +13,12 @@
     "typecheck": "astro check"
   },
   "dependencies": {
-    "@astrojs/starlight": "0.38.3",
-    "astro": "6.1.8",
+    "@astrojs/starlight": "0.39.0",
+    "astro": "6.3.0",
     "sharp": "0.34.5"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.8",
+    "@astrojs/check": "0.9.9",
     "typescript": "6.0.3"
   }
 }
