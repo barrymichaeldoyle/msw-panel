@@ -1,5 +1,33 @@
 # msw-panel
 
+## 0.3.0
+
+### Minor Changes
+
+- 5e8b765: Add an optional grouped tree view that organizes handlers by shared path segments (closes #10).
+
+  When enabled, HTTP handlers with a path are shown as a collapsible tree — `/profile/me`, `/profile/:id`, and `/profile/:id/followers` nest under a shared `profile` group, single-child chains compact like nested folders, and each group shows a handler count with **Expand all** / **Collapse all** controls. An active filter auto-expands matching groups; path-less handlers (GraphQL, WebSocket) stay in a flat section.
+
+  It's off by default to preserve the existing flat list. Set the codebase default with the new `defaultGrouped` prop on `<MswPanel>` / `<MswPanelEmbedded>`; individual developers can override it from the panel's Settings view via a new "Group handlers by path" toggle, saved per-browser to `localStorage` and taking precedence over the prop. Group expand/collapse state is currently in-memory (not yet persisted across reloads).
+
+- 179a35e: Add a Settings view to the panel, opened from a new gear icon in the header.
+
+  The first setting, **Auto-refresh on change**, reloads the page whenever a handler is enabled or disabled instead of showing the manual "Refresh the page" banner. Configure the codebase-wide default with the new `defaultAutoRefresh` prop on `<MswPanel>` / `<MswPanelEmbedded>` (defaults to `false`); individual developers can override it from the panel's Settings view, and their choice is saved per-browser to `localStorage` (key `msw-panel:settings`), taking precedence over the prop default.
+
+- 5e8b765: The floating `<MswPanel>` now remembers its open/closed state across page reloads by default (saved per-browser to `localStorage`). On load it restores the last state, overriding `defaultOpen`.
+
+  Previously the panel always reopened collapsed after a reload, which was especially disruptive with `defaultAutoRefresh` — toggling a handler reloaded the page and you lost your place. Now the panel stays where you left it.
+
+  Controlled by the new `persistOpen` prop (defaults to `true`). Set `persistOpen={false}` to restore the previous behavior of always starting from `defaultOpen` without persisting.
+
+### Patch Changes
+
+- d73a448: Add an `id="msw-panel"` to the floating panel's `<aside>` wrapper so developers can target it with their own CSS or scripts.
+
+  Fix the collapsed panel covering content beneath it. The fixed-position wrapper now uses `pointer-events: none`, so clicks pass through its empty area; the trigger button and open panel re-enable pointer events on themselves.
+
+  Accessibility and UX polish: press `Escape` to close the open panel, the `<aside>` landmark is now named via `aria-label`, handler toggles expose an `aria-label` describing which handler they control, and the filter field uses `type="search"`.
+
 ## 0.2.2
 
 ### Patch Changes
