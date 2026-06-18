@@ -14,13 +14,24 @@ onlyBuiltDependencies:
 
 overrides:
   yaml: 2.8.4
-  msw: 2.14.4
-  react: 19.2.6
-  react-dom: 19.2.6
+  msw: 2.14.6
+  react: 19.2.7
+  react-dom: 19.2.7
+  js-yaml: 4.2.0
+  # @manypkg/get-packages@1.x asks for read-yaml-file@1, which pulls
+  # vulnerable js-yaml@3. read-yaml-file@2 keeps the CommonJS API and uses
+  # js-yaml@4.
+  read-yaml-file: 2.1.0
+  # Force all build-tooling consumers onto the patched esbuild line.
+  esbuild: 0.28.1
+  # Force astro's transitive vite onto the patched 7.x line
+  # (GHSA-v6wh-96g9-6wx3 server.fs.deny bypass + launch-editor UNC disclosure).
+  # astro@6 requires vite ^7.3.2; 7.3.5 is the patched release within that range.
+  vite@7: 7.3.5
 
 catalog:
-  msw: 2.14.4
-  react: 19.2.6
-  react-dom: 19.2.6
-  "@types/react": 19.2.14
+  msw: 2.14.6
+  react: 19.2.7
+  react-dom: 19.2.7
+  "@types/react": 19.2.17
   "@types/react-dom": 19.2.3
