@@ -150,6 +150,19 @@ function MswPanelInner({
   const isLeft = position.endsWith("left");
   const effectivePanelSide = panelSide ?? (isTop ? "bottom" : "top");
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isOpen]);
+
   const rootStyle: CSSProperties = {
     alignItems: isLeft ? "flex-start" : "flex-end",
     bottom: isTop ? undefined : "1.5rem",
@@ -157,6 +170,9 @@ function MswPanelInner({
     flexDirection: effectivePanelSide === "top" ? "column-reverse" : "column",
     gap: "0.5rem",
     left: isLeft ? "1.5rem" : undefined,
+    // The fixed wrapper spans its full width even when collapsed, so let clicks
+    // pass through the empty area. Interactive children re-enable pointer events.
+    pointerEvents: "none",
     position: "fixed",
     right: isLeft ? undefined : "1.5rem",
     top: isTop ? "1.5rem" : undefined,
@@ -165,7 +181,7 @@ function MswPanelInner({
   };
 
   return (
-    <aside style={rootStyle}>
+    <aside aria-label={title} id="msw-panel" style={rootStyle}>
       {isOpen && (
         <PanelContent
           controller={controller}
@@ -358,10 +374,11 @@ function PanelContent({
           <>
             <div style={searchWrapStyle}>
               <input
+                aria-label="Filter handlers"
                 onChange={(e) => onFilterChange(e.target.value)}
                 placeholder="Filter handlers…"
                 style={{ ...searchInputStyle, ...theme.searchInput }}
-                type="text"
+                type="search"
                 value={filter}
               />
               {filter ? (
@@ -454,21 +471,23 @@ function HandlerRow({ handler, onToggle, theme }: HandlerRowProps) {
           </span>
         </div>
       </div>
-      <ToggleSwitch enabled={handler.enabled} onToggle={onToggle} theme={theme} />
+      <ToggleSwitch enabled={handler.enabled} label={label} onToggle={onToggle} theme={theme} />
     </li>
   );
 }
 
 interface ToggleSwitchProps {
   enabled: boolean;
+  label: string;
   onToggle: () => void;
   theme: PanelThemeStyles;
 }
 
-function ToggleSwitch({ enabled, onToggle, theme }: ToggleSwitchProps) {
+function ToggleSwitch({ enabled, label, onToggle, theme }: ToggleSwitchProps) {
   return (
     <button
       aria-checked={enabled}
+      aria-label={`Toggle ${label}`}
       onClick={onToggle}
       role="switch"
       style={{
@@ -725,6 +744,7 @@ const panelFrameStyle: CSSProperties = {
   fontSize: "0.875rem",
   height: "30rem",
   padding: "1rem",
+  pointerEvents: "auto",
   width: "100%",
 };
 
@@ -951,6 +971,7 @@ const triggerButtonStyle: CSSProperties = {
   justifyContent: "center",
   lineHeight: 0,
   padding: 0,
+  pointerEvents: "auto",
   position: "relative",
   width: "3.25rem",
 };

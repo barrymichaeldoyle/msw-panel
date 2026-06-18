@@ -164,6 +164,122 @@ describe("MswPanel", () => {
     await openView.unmount();
   });
 
+  it("exposes a stable id on the wrapper for targeting", async () => {
+    const view = await renderPanel({
+      activeHandlers: 1,
+      disabledHandlers: 0,
+      handlers: [],
+    });
+
+    const aside = view.container.querySelector("aside");
+    expect(aside).not.toBeNull();
+    expect(aside?.id).toBe("msw-panel");
+
+    await view.unmount();
+  });
+
+  it("lets clicks pass through the empty wrapper area but not the trigger", async () => {
+    const view = await renderPanel({
+      activeHandlers: 1,
+      disabledHandlers: 0,
+      handlers: [],
+    });
+
+    const aside = view.container.querySelector("aside") as HTMLElement;
+    expect(aside.style.pointerEvents).toBe("none");
+
+    const trigger = view.container.querySelector("button") as HTMLElement;
+    expect(trigger.style.pointerEvents).toBe("auto");
+
+    await view.unmount();
+  });
+
+  it("re-enables pointer events on the open panel frame", async () => {
+    const view = await renderPanel(
+      {
+        activeHandlers: 1,
+        disabledHandlers: 0,
+        handlers: [],
+      },
+      { defaultOpen: true },
+    );
+
+    const aside = view.container.querySelector("aside") as HTMLElement;
+    expect(aside.style.pointerEvents).toBe("none");
+
+    const frame = aside.firstElementChild as HTMLElement;
+    expect(frame.style.pointerEvents).toBe("auto");
+
+    await view.unmount();
+  });
+
+  it("names the aside landmark with the panel title", async () => {
+    const view = await renderPanel(
+      {
+        activeHandlers: 0,
+        disabledHandlers: 0,
+        handlers: [],
+      },
+      { title: "Mock controls" },
+    );
+
+    const aside = view.container.querySelector("aside");
+    expect(aside?.getAttribute("aria-label")).toBe("Mock controls");
+
+    await view.unmount();
+  });
+
+  it("closes the open panel when Escape is pressed", async () => {
+    const view = await renderPanel(
+      {
+        activeHandlers: 0,
+        disabledHandlers: 0,
+        handlers: [],
+      },
+      { defaultOpen: true },
+    );
+
+    expect(view.container.querySelector('[aria-label="Close MSW Panel"]')).not.toBeNull();
+
+    await act(async () => {
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    });
+
+    expect(view.container.querySelector('[aria-label="Close MSW Panel"]')).toBeNull();
+    expect(view.container.querySelector('[aria-label="Open MSW Panel"]')).not.toBeNull();
+
+    await view.unmount();
+  });
+
+  it("labels handler toggles and uses a search input for the filter", async () => {
+    const view = await renderPanel(
+      {
+        activeHandlers: 1,
+        disabledHandlers: 0,
+        handlers: [
+          {
+            enabled: true,
+            id: "request:get:/users",
+            kind: "http",
+            label: "GET /api/users",
+            method: "GET",
+            path: "https://msw-panel.test/api/users",
+            used: false,
+          },
+        ],
+      },
+      { defaultOpen: true },
+    );
+
+    const toggle = view.container.querySelector('[role="switch"]');
+    expect(toggle?.getAttribute("aria-label")).toBe("Toggle https://msw-panel.test/api/users");
+
+    const filter = view.container.querySelector("input");
+    expect(filter?.getAttribute("type")).toBe("search");
+
+    await view.unmount();
+  });
+
   it("does not render in production unless showInProduction is true", async () => {
     process.env.NODE_ENV = "production";
 
