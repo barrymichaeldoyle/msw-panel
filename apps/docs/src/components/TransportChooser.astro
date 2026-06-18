@@ -27,6 +27,10 @@
 </section>
 
 <style>
+  /*
+   * Dark surface matching the site theme. Injected (innerHTML) <li>s miss the scoped-style
+   * attribute, so they are matched with :global() under their static parent.
+   */
   .chooser-shell {
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 1rem;
@@ -35,8 +39,8 @@
     margin: 1.5rem 0;
     padding: 1rem;
     background:
-      linear-gradient(180deg, rgba(236, 241, 238, 0.92), rgba(255, 255, 255, 0.92)),
-      var(--sl-color-bg);
+      radial-gradient(circle at top right, rgba(255, 106, 51, 0.1), transparent 30%),
+      linear-gradient(180deg, rgba(20, 20, 20, 0.96), rgba(10, 10, 10, 0.96));
   }
 
   .chooser-header {
@@ -56,11 +60,12 @@
   .chooser-header h3,
   .chooser-result h4 {
     margin: 0.2rem 0 0;
+    color: var(--sl-color-white);
   }
 
   .chooser-copy,
   .chooser-result p,
-  .chooser-result li {
+  .chooser-result :global(li) {
     color: var(--sl-color-gray-2);
   }
 
@@ -72,25 +77,38 @@
 
   .chooser-options button {
     appearance: none;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 1rem;
-    color: var(--sl-color-black);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.75rem;
+    color: var(--sl-color-white);
     cursor: pointer;
     font: inherit;
     padding: 0.95rem;
     text-align: left;
+    transition:
+      background 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .chooser-options button:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--sl-color-accent);
   }
 
   .chooser-options button[data-selected="true"] {
-    border-color: #145b43;
-    box-shadow: inset 0 0 0 1px #145b43;
-    background: rgba(20, 91, 67, 0.1);
+    border-color: var(--sl-color-accent);
+    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+    background: rgba(255, 106, 51, 0.12);
+  }
+
+  .chooser-options button:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
   }
 
   .chooser-result {
-    background: rgba(255, 255, 255, 0.84);
-    border: 1px solid var(--sl-color-gray-5);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 1rem;
     padding: 1rem;
   }

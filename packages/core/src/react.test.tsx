@@ -380,6 +380,139 @@ describe("MswPanel", () => {
     await second.unmount();
   });
 
+  const profileSnapshot: MswPanelSnapshot = {
+    activeHandlers: 3,
+    disabledHandlers: 0,
+    handlers: [
+      {
+        enabled: true,
+        id: "me",
+        kind: "http",
+        label: "GET /profile/me",
+        method: "GET",
+        path: "/profile/me",
+        used: false,
+      },
+      {
+        enabled: true,
+        id: "id",
+        kind: "http",
+        label: "GET /profile/:id",
+        method: "GET",
+        path: "/profile/:id",
+        used: false,
+      },
+      {
+        enabled: true,
+        id: "followers",
+        kind: "http",
+        label: "GET /profile/:id/followers",
+        method: "GET",
+        path: "/profile/:id/followers",
+        used: false,
+      },
+    ],
+  };
+
+  it("renders a collapsed group tree when grouped defaults on", async () => {
+    const view = await renderPanel(profileSnapshot, { defaultOpen: true, defaultGrouped: true });
+
+    // Top-level "profile" group is shown, but nested handler rows stay hidden until expanded.
+    expect(view.container.querySelector('[data-msw-panel-group="profile"]')).not.toBeNull();
+    expect(view.container.querySelector("[data-handler-id]")).toBeNull();
+
+    await view.unmount();
+  });
+
+  it("reveals handler rows when a group is expanded", async () => {
+    const view = await renderPanel(profileSnapshot, { defaultOpen: true, defaultGrouped: true });
+
+    await click(view.container.querySelector('[data-msw-panel-group="profile"]'));
+
+    // Leaf `/profile/me` renders its row inline; `/profile/:id` is a nested group still collapsed.
+    expect(view.container.querySelector('[data-handler-id="me"]')).not.toBeNull();
+    expect(view.container.querySelector('[data-msw-panel-group="profile/:id"]')).not.toBeNull();
+    expect(view.container.querySelector('[data-handler-id="followers"]')).toBeNull();
+
+    await view.unmount();
+  });
+
+  it("force-expands matching groups while a filter is active", async () => {
+    const view = await renderPanel(profileSnapshot, { defaultOpen: true, defaultGrouped: true });
+
+    const input = view.container.querySelector("input") as HTMLInputElement;
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value",
+    )?.set;
+    await act(async () => {
+      nativeSetter?.call(input, "followers");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    // The matching deep handler is visible without any manual expansion.
+    expect(view.container.querySelector('[data-handler-id="followers"]')).not.toBeNull();
+    expect(view.container.querySelector('[data-handler-id="me"]')).toBeNull();
+
+    await view.unmount();
+  });
+
+  it("keeps a flat list when grouped is off (default)", async () => {
+    const view = await renderPanel(profileSnapshot, { defaultOpen: true });
+
+    expect(view.container.querySelector("[data-msw-panel-group]")).toBeNull();
+    expect(view.container.querySelectorAll("[data-handler-id]")).toHaveLength(3);
+
+    await view.unmount();
+  });
+
+  it("persists the developer's grouped choice and overrides the codebase default", async () => {
+    const first = await renderPanel(profileSnapshot, { defaultOpen: true });
+
+    await click(first.container.querySelector('[aria-label="Open settings"]'));
+    const toggle = first.container.querySelector('[aria-label="Toggle group handlers by path"]');
+    expect(toggle?.getAttribute("aria-checked")).toBe("false");
+    await click(toggle);
+    expect(toggle?.getAttribute("aria-checked")).toBe("true");
+
+    await first.unmount();
+
+    // A fresh mount with grouping still off in code picks up the stored preference.
+    const second = await renderPanel(profileSnapshot, { defaultOpen: true, defaultGrouped: false });
+    expect(second.container.querySelector('[data-msw-panel-group="profile"]')).not.toBeNull();
+
+    await second.unmount();
+  });
+
+  it("restores the panel open state across remounts by default", async () => {
+    const first = await renderPanel(oneHandlerSnapshot);
+
+    // Open the panel, which should be saved to storage.
+    await click(first.container.querySelector('[aria-label="Open MSW Panel"]'));
+    expect(first.container.querySelector('[aria-label="Close MSW Panel"]')).not.toBeNull();
+
+    await first.unmount();
+
+    // A fresh mount (simulating a reload) reopens to the stored state despite defaultOpen being false.
+    const second = await renderPanel(oneHandlerSnapshot);
+    expect(second.container.querySelector('[aria-label="Close MSW Panel"]')).not.toBeNull();
+
+    await second.unmount();
+  });
+
+  it("does not persist the open state when persistOpen is false", async () => {
+    const first = await renderPanel(oneHandlerSnapshot, { persistOpen: false });
+    await click(first.container.querySelector('[aria-label="Open MSW Panel"]'));
+    expect(first.container.querySelector('[aria-label="Close MSW Panel"]')).not.toBeNull();
+    await first.unmount();
+
+    // With persistOpen disabled, a fresh mount starts collapsed again.
+    const second = await renderPanel(oneHandlerSnapshot, { persistOpen: false });
+    expect(second.container.querySelector('[aria-label="Close MSW Panel"]')).toBeNull();
+    expect(second.container.querySelector('[aria-label="Open MSW Panel"]')).not.toBeNull();
+    await second.unmount();
+  });
+
   it("does not render in production unless showInProduction is true", async () => {
     process.env.NODE_ENV = "production";
 

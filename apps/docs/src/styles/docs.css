@@ -51,6 +51,26 @@ html {
   display: none;
 }
 
+/* Inline code defaults to ~0.8em, which reads small in these API-heavy docs. */
+.sl-markdown-content :not(pre) > code {
+  font-size: 0.875em;
+}
+
+/*
+ * Starlight adds `margin-top` to every flow element that follows a sibling. Inside the interactive
+ * examples' grid/flex rows that pushes the 2nd/3rd item down (and shrinks it in a stretch grid),
+ * so the first card in each row looks taller. Reset it on the layout children only — the containers
+ * keep their own margins, which provide the spacing between sections.
+ */
+.remote-grid > *,
+.remote-state-grid > *,
+.remote-controls > *,
+.demo-stats > *,
+.demo-toolbar > *,
+.chooser-options > * {
+  margin-top: 0;
+}
+
 /* Hero CTA buttons */
 .sl-link-button.primary {
   background-color: #ff6a33;

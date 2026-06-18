@@ -35,6 +35,29 @@ export function SlidersIcon({ size }: { size: number }) {
   );
 }
 
+export function ChevronIcon({ size, expanded }: { size: number; expanded: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height={size}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      style={{
+        flexShrink: 0,
+        transform: expanded ? "rotate(90deg)" : "none",
+        transition: "transform 150ms ease",
+      }}
+      viewBox="0 0 24 24"
+      width={size}
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
 export function GearIcon({ size }: { size: number }) {
   return (
     <svg

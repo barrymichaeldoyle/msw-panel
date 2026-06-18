@@ -2,10 +2,12 @@ import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
-import type { MswPanelController, MswPanelHandlerSnapshot, MswPanelSnapshot } from "./index.js";
+import type { MswPanelController, MswPanelSnapshot } from "./index.js";
+import { HandlerRow, ToggleSwitch } from "./panel-handlers.js";
 import { GearIcon, SlidersIcon } from "./panel-icons.js";
-import { useAutoRefresh } from "./panel-settings.js";
+import { useAutoRefresh, useGrouped, usePanelOpen } from "./panel-settings.js";
 import { panelThemes, type PanelTheme, type PanelThemeStyles } from "./panel-theme.js";
+import { HandlerTreeView } from "./panel-tree.js";
 import {
   actionButtonStyle,
   contentAreaStyle,
@@ -18,20 +20,13 @@ import {
   headerActionsStyle,
   headerLeftStyle,
   inlineCodeStyle,
-  kindBadgeStyle,
   listStyle,
   logoMarkStyle,
-  methodBadgeStyle,
   noResultsStyle,
   panelFrameStyle,
   panelHeaderStyle,
-  pathStyle,
   refreshBannerStyle,
   refreshButtonStyle,
-  rowContentStyle,
-  rowMainStyle,
-  rowMetaStyle,
-  rowStyle,
   searchClearStyle,
   searchInputStyle,
   searchWrapStyle,
@@ -42,12 +37,9 @@ import {
   settingTitleStyle,
   summaryStyle,
   titleStyle,
-  toggleThumbStyle,
-  toggleTrackBase,
   toolbarStyle,
   triggerBadgeStyle,
   triggerButtonStyle,
-  usageMetaStyle,
 } from "./panel-styles.js";
 
 /** Viewport corner where the floating trigger button is anchored. */
@@ -71,10 +63,23 @@ export interface MswPanelProps {
    * their saved choice takes precedence over this default. Defaults to `false`.
    */
   defaultAutoRefresh?: boolean;
+  /**
+   * Codebase default for the "Group handlers by path" setting: present handlers as a collapsible
+   * tree grouped by shared path segments instead of a flat list. Developers can override this
+   * per-browser from the panel's Settings view; their saved choice takes precedence. Defaults to `false`.
+   */
+  defaultGrouped?: boolean;
   /** Open the panel on first render. Defaults to `false`. */
   defaultOpen?: boolean;
   /** Direction the panel expands from the trigger button. Defaults to the natural direction for the chosen corner. */
   panelSide?: PanelSide;
+  /**
+   * Remember the panel's open/closed state across page reloads (saved per-browser to
+   * `localStorage`). Restores the last state on load, overriding `defaultOpen` — so the panel does
+   * not vanish when a handler toggle reloads the page (e.g. with `defaultAutoRefresh`). Defaults to
+   * `true`; set `false` to always start from `defaultOpen` and never persist.
+   */
+  persistOpen?: boolean;
   /** Viewport corner to anchor the trigger button. Defaults to `"bottom-right"`. */
   position?: PanelPosition;
   /** Render inside a Shadow DOM root to isolate from external CSS resets. */
@@ -105,6 +110,12 @@ export interface MswPanelEmbeddedProps {
    * their saved choice takes precedence over this default. Defaults to `false`.
    */
   defaultAutoRefresh?: boolean;
+  /**
+   * Codebase default for the "Group handlers by path" setting: present handlers as a collapsible
+   * tree grouped by shared path segments instead of a flat list. Developers can override this
+   * per-browser from the panel's Settings view; their saved choice takes precedence. Defaults to `false`.
+   */
+  defaultGrouped?: boolean;
   /** Render inside a Shadow DOM root to isolate from external CSS resets. */
   shadow?: boolean;
   /** Render even when `process.env.NODE_ENV === "production"`. Intended for hosted demos and docs. */
@@ -160,8 +171,10 @@ export function MswPanelEmbedded({ controller, shadow, style, ...props }: MswPan
 function MswPanelInner({
   controller,
   defaultAutoRefresh = false,
+  defaultGrouped = false,
   defaultOpen = false,
   panelSide,
+  persistOpen = true,
   position = "bottom-right",
   showCount = true,
   showSync = false,
@@ -173,10 +186,11 @@ function MswPanelInner({
     controller.getSnapshot,
     controller.getSnapshot,
   );
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isOpen, setIsOpen] = usePanelOpen(defaultOpen, persistOpen);
   const [filter, setFilter] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [autoRefresh, setAutoRefresh] = useAutoRefresh(defaultAutoRefresh);
+  const [grouped, setGrouped] = useGrouped(defaultGrouped);
   const panelTheme = panelThemes[theme];
 
   const isTop = position.startsWith("top");
@@ -228,6 +242,7 @@ function MswPanelInner({
           autoRefresh={autoRefresh}
           controller={controller}
           filter={filter}
+          grouped={grouped}
           onAutoRefreshChange={setAutoRefresh}
           onClose={() => {
             setShowSettings(false);
@@ -235,6 +250,7 @@ function MswPanelInner({
           }}
           onCloseSettings={() => setShowSettings(false)}
           onFilterChange={setFilter}
+          onGroupedChange={setGrouped}
           onOpenSettings={() => setShowSettings(true)}
           showSettings={showSettings}
           showSync={showSync}
@@ -268,6 +284,7 @@ function MswPanelInner({
 function MswPanelEmbeddedInner({
   controller,
   defaultAutoRefresh = false,
+  defaultGrouped = false,
   showSync = false,
   style,
   theme = "dark",
@@ -281,6 +298,7 @@ function MswPanelEmbeddedInner({
   const [filter, setFilter] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [autoRefresh, setAutoRefresh] = useAutoRefresh(defaultAutoRefresh);
+  const [grouped, setGrouped] = useGrouped(defaultGrouped);
   const panelTheme = panelThemes[theme];
 
   return (
@@ -288,9 +306,11 @@ function MswPanelEmbeddedInner({
       autoRefresh={autoRefresh}
       controller={controller}
       filter={filter}
+      grouped={grouped}
       onAutoRefreshChange={setAutoRefresh}
       onCloseSettings={() => setShowSettings(false)}
       onFilterChange={setFilter}
+      onGroupedChange={setGrouped}
       onOpenSettings={() => setShowSettings(true)}
       showSettings={showSettings}
       showSync={showSync}
@@ -306,10 +326,12 @@ interface PanelContentProps {
   autoRefresh: boolean;
   controller: MswPanelController;
   filter: string;
+  grouped: boolean;
   onAutoRefreshChange: (value: boolean) => void;
   onClose?: () => void;
   onCloseSettings: () => void;
   onFilterChange: (value: string) => void;
+  onGroupedChange: (value: boolean) => void;
   onOpenSettings: () => void;
   showSettings: boolean;
   showSync: boolean;
@@ -323,10 +345,12 @@ function PanelContent({
   autoRefresh,
   controller,
   filter,
+  grouped,
   onAutoRefreshChange,
   onClose,
   onCloseSettings,
   onFilterChange,
+  onGroupedChange,
   onOpenSettings,
   showSettings,
   showSync,
@@ -397,6 +421,22 @@ function PanelContent({
               enabled={autoRefresh}
               label="auto-refresh on change"
               onToggle={() => onAutoRefreshChange(!autoRefresh)}
+              theme={theme}
+            />
+          </div>
+          <div style={settingRowStyle}>
+            <div style={settingTextStyle}>
+              <strong style={{ ...settingTitleStyle, ...theme.title }}>
+                Group handlers by path
+              </strong>
+              <span style={{ ...settingDescStyle, ...theme.summary }}>
+                Show handlers as a collapsible tree grouped by shared path segments.
+              </span>
+            </div>
+            <ToggleSwitch
+              enabled={grouped}
+              label="group handlers by path"
+              onToggle={() => onGroupedChange(!grouped)}
               theme={theme}
             />
           </div>
@@ -532,6 +572,16 @@ function PanelContent({
               <p style={{ ...noResultsStyle, ...theme.noResults }}>
                 No handlers match &ldquo;{filter}&rdquo;
               </p>
+            ) : grouped ? (
+              <HandlerTreeView
+                filtering={filter.length > 0}
+                handlers={filteredHandlers}
+                onToggleHandler={(id) => {
+                  controller.toggle(id);
+                  onHandlerChange();
+                }}
+                theme={theme}
+              />
             ) : (
               <ul style={listStyle}>
                 {filteredHandlers.map((handler) => (
@@ -568,75 +618,5 @@ function ShadowHost({ children, style }: { children: ReactNode; style?: CSSPrope
     <div ref={ref} style={style}>
       {shadowRoot ? createPortal(children, shadowRoot) : null}
     </div>
-  );
-}
-
-interface HandlerRowProps {
-  handler: MswPanelHandlerSnapshot;
-  onToggle: () => void;
-  theme: PanelThemeStyles;
-}
-
-function HandlerRow({ handler, onToggle, theme }: HandlerRowProps) {
-  const badge = handler.method ? (
-    <span style={{ ...methodBadgeStyle, ...theme.methodBadge }}>
-      {handler.method === "*" ? "ANY" : handler.method}
-    </span>
-  ) : (
-    <span style={{ ...kindBadgeStyle, ...theme.kindBadge }}>{handler.kind}</span>
-  );
-  const label = handler.path ?? handler.label;
-  const usageLabel = handler.used ? "used" : "idle";
-
-  return (
-    <li
-      data-handler-id={handler.id}
-      data-handler-method={handler.method ?? undefined}
-      data-handler-path={handler.path ?? undefined}
-      style={{ ...rowStyle, ...theme.rowBorder, ...(handler.used ? null : theme.rowUnused) }}
-    >
-      <div style={rowMainStyle}>
-        <div style={rowMetaStyle}>
-          {badge}
-          <span style={{ ...usageMetaStyle, ...theme.usageMeta }}>{usageLabel}</span>
-        </div>
-        <div style={rowContentStyle}>
-          <span style={{ ...pathStyle, ...(handler.used ? theme.pathUsed : theme.pathUnused) }}>
-            {label}
-          </span>
-        </div>
-      </div>
-      <ToggleSwitch enabled={handler.enabled} label={label} onToggle={onToggle} theme={theme} />
-    </li>
-  );
-}
-
-interface ToggleSwitchProps {
-  enabled: boolean;
-  label: string;
-  onToggle: () => void;
-  theme: PanelThemeStyles;
-}
-
-function ToggleSwitch({ enabled, label, onToggle, theme }: ToggleSwitchProps) {
-  return (
-    <button
-      aria-checked={enabled}
-      aria-label={`Toggle ${label}`}
-      onClick={onToggle}
-      role="switch"
-      style={{
-        ...toggleTrackBase,
-        ...(enabled ? theme.toggleEnabled : theme.toggleDisabled),
-      }}
-      type="button"
-    >
-      <span
-        style={{
-          ...toggleThumbStyle,
-          left: enabled ? "calc(100% - 1.125rem - 0.1875rem)" : "0.1875rem",
-        }}
-      />
-    </button>
   );
 }

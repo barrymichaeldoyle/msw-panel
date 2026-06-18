@@ -187,6 +187,61 @@ export const rowStyle: CSSProperties = {
   padding: "0.6rem 0.75rem",
 };
 
+export const treeSubListStyle: CSSProperties = {
+  listStyle: "none",
+  margin: 0,
+  padding: 0,
+  paddingLeft: "0.75rem",
+};
+
+export const treeControlsStyle: CSSProperties = {
+  display: "flex",
+  gap: "0.75rem",
+  flexShrink: 0,
+  justifyContent: "flex-end",
+  margin: "0.75rem 0 0",
+};
+
+export const treeControlButtonStyle: CSSProperties = {
+  background: "transparent",
+  border: 0,
+  cursor: "pointer",
+  font: "inherit",
+  fontSize: "0.72rem",
+  padding: "0.1rem 0.2rem",
+  textDecoration: "underline",
+};
+
+export const groupRowStyle: CSSProperties = {
+  alignItems: "center",
+  background: "transparent",
+  border: 0,
+  color: "inherit",
+  cursor: "pointer",
+  display: "flex",
+  font: "inherit",
+  gap: "0.4rem",
+  padding: "0.5rem 0.75rem",
+  textAlign: "left",
+  width: "100%",
+};
+
+export const groupLabelStyle: CSSProperties = {
+  flex: 1,
+  fontFamily: "ui-monospace, monospace",
+  fontSize: "0.75rem",
+  minWidth: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+export const groupCountStyle: CSSProperties = {
+  flexShrink: 0,
+  fontSize: "0.65rem",
+  fontVariantNumeric: "tabular-nums",
+};
+
 export const rowMainStyle: CSSProperties = {
   display: "flex",
   flex: 1,

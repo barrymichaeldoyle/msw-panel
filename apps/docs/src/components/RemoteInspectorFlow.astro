@@ -72,12 +72,6 @@
       linear-gradient(180deg, rgba(18, 26, 23, 0.96), rgba(13, 17, 16, 0.96));
   }
 
-  :root[data-theme="light"] .remote-shell {
-    background:
-      radial-gradient(circle at top right, rgba(242, 154, 82, 0.16), transparent 24%),
-      linear-gradient(180deg, rgba(250, 245, 237, 0.98), rgba(244, 238, 230, 0.98));
-  }
-
   .remote-header {
     display: grid;
     gap: 0.5rem;
@@ -111,21 +105,39 @@
 
   .remote-controls button {
     appearance: none;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    background: var(--sl-color-black);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.625rem;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--sl-color-white);
     cursor: pointer;
     font: inherit;
-    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+    padding: 0.55rem 0.95rem;
+    transition:
+      background 150ms ease,
+      border-color 150ms ease;
   }
 
+  .remote-controls button:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--sl-color-accent);
+  }
+
+  .remote-controls button:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  /* "Start relay" is the entry point for the flow, so it reads as the single primary action. */
   .remote-controls button[data-action="start-relay"] {
-    background: #145b43;
+    background: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: #ffffff;
   }
 
-  .remote-controls button[data-action="toggle"] {
-    background: #b85c27;
+  .remote-controls button[data-action="start-relay"]:hover {
+    background: #e8521a;
+    border-color: #e8521a;
   }
 
   .remote-grid,
@@ -143,12 +155,6 @@
     background: rgba(255, 255, 255, 0.05);
   }
 
-  :root[data-theme="light"] .remote-card,
-  :root[data-theme="light"] .remote-state {
-    border-color: rgba(32, 26, 19, 0.08);
-    background: rgba(255, 255, 255, 0.75);
-  }
-
   .remote-card strong,
   .remote-state strong {
     display: block;
@@ -157,26 +163,29 @@
     color: var(--sl-color-white);
   }
 
-  :root[data-theme="light"] .remote-card strong,
-  :root[data-theme="light"] .remote-state strong {
-    color: var(--sl-color-white);
-  }
-
   .remote-log {
     display: grid;
     gap: 0.7rem;
     list-style: decimal;
-    margin: 0;
+    margin: 1rem 0 0;
     padding-left: 1.35rem;
   }
 
-  .remote-log li {
+  /*
+   * Log <li>s are injected via innerHTML, so they miss the scoped-style attribute — target globally.
+   * margin-top: 0 overrides Starlight's `li + li` rule so every item (including the first) is spaced
+   * only by the grid gap, keeping them uniform.
+   */
+  .remote-log :global(li) {
+    color: var(--sl-color-gray-2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 0;
     padding-bottom: 0.55rem;
   }
 
-  :root[data-theme="light"] .remote-log li {
-    border-bottom-color: rgba(32, 26, 19, 0.08);
+  .remote-log :global(li:last-child) {
+    border-bottom: 0;
+    padding-bottom: 0;
   }
 
   @media (max-width: 900px) {

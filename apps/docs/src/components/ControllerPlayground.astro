@@ -42,6 +42,10 @@
 </section>
 
 <style>
+  /*
+   * Dark surface matching the site theme. Injected (innerHTML) rows/buttons miss the scoped-style
+   * attribute, so they are matched with :global() under their static parent.
+   */
   .demo-shell {
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 1rem;
@@ -50,8 +54,8 @@
     margin: 1.5rem 0;
     padding: 1rem;
     background:
-      linear-gradient(180deg, rgba(242, 237, 229, 0.88), rgba(255, 255, 255, 0.92)),
-      var(--sl-color-bg);
+      radial-gradient(circle at top right, rgba(255, 106, 51, 0.1), transparent 30%),
+      linear-gradient(180deg, rgba(20, 20, 20, 0.96), rgba(10, 10, 10, 0.96));
   }
 
   .demo-header {
@@ -61,7 +65,7 @@
 
   .demo-eyebrow,
   .demo-stat-label,
-  .handler-meta {
+  .handler-list :global(.handler-meta) {
     color: var(--sl-color-text-accent);
     font-size: 0.78rem;
     letter-spacing: 0.08em;
@@ -70,6 +74,7 @@
 
   .demo-header h3 {
     margin: 0.2rem 0 0;
+    color: var(--sl-color-white);
   }
 
   .demo-copy,
@@ -85,23 +90,36 @@
   }
 
   .demo-toolbar button,
-  .handler-list button {
+  .handler-list :global(button) {
     appearance: none;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 999px;
-    background: var(--sl-color-black);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 0.625rem;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--sl-color-white);
     cursor: pointer;
     font: inherit;
-    padding: 0.55rem 0.9rem;
+    font-size: 0.9rem;
+    padding: 0.55rem 0.95rem;
+    transition:
+      background 150ms ease,
+      border-color 150ms ease;
   }
 
-  .demo-toolbar button[data-action="add-runtime"] {
-    background: #7b3f00;
+  .demo-toolbar button:hover,
+  .handler-list :global(button):hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: var(--sl-color-accent);
   }
 
-  .demo-toolbar button[data-action="sync"] {
-    background: #145b43;
+  .demo-toolbar button:focus-visible,
+  .handler-list :global(button:focus-visible) {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  /* A disabled handler toggle reads as muted rather than active. */
+  .handler-list :global(button[data-enabled="false"]) {
+    color: var(--sl-color-gray-3);
   }
 
   .demo-stats {
@@ -111,8 +129,8 @@
   }
 
   .demo-stat {
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid var(--sl-color-gray-5);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 0.9rem;
     padding: 0.85rem;
   }
@@ -121,6 +139,7 @@
     display: block;
     font-size: 1.4rem;
     margin-top: 0.35rem;
+    color: var(--sl-color-white);
   }
 
   .handler-list {
@@ -131,28 +150,27 @@
     padding: 0;
   }
 
-  .handler-row {
+  /* margin-top: 0 overrides Starlight's `li + li` rule so the grid gap is the only row spacing. */
+  .handler-list :global(.handler-row) {
     align-items: center;
-    background: rgba(255, 255, 255, 0.84);
-    border: 1px solid var(--sl-color-gray-5);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 1rem;
     display: flex;
     gap: 0.75rem;
     justify-content: space-between;
+    margin-top: 0;
     padding: 0.8rem 0.9rem;
   }
 
-  .handler-name {
+  .handler-list :global(.handler-name) {
+    color: var(--sl-color-white);
     font-weight: 600;
   }
 
-  .handler-meta {
+  .handler-list :global(.handler-meta) {
     display: block;
     margin-top: 0.2rem;
-  }
-
-  .handler-list button[data-enabled="false"] {
-    background: #b3521f;
   }
 
   @media (max-width: 720px) {
