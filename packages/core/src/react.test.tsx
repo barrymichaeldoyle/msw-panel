@@ -3,7 +3,7 @@
 import { act } from "react";
 import type { ComponentProps } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { MswPanelController, MswPanelSnapshot } from "./index.js";
 import { MswPanel } from "./react.js";
@@ -44,9 +44,28 @@ async function renderPanel(
   };
 }
 
+async function click(element: Element | null | undefined) {
+  await act(async () => {
+    (element as HTMLElement).click();
+  });
+}
+
+const reloadMock = vi.fn();
+
+beforeAll(() => {
+  // jsdom's location.reload can't be re-spied between tests, so replace location once.
+  Object.defineProperty(window, "location", {
+    configurable: true,
+    value: { ...window.location, reload: reloadMock },
+  });
+});
+
 afterEach(() => {
   document.body.innerHTML = "";
   process.env.NODE_ENV = "test";
+  window.localStorage.clear();
+  reloadMock.mockClear();
+  vi.restoreAllMocks();
 });
 
 describe("MswPanel", () => {
@@ -278,6 +297,87 @@ describe("MswPanel", () => {
     expect(filter?.getAttribute("type")).toBe("search");
 
     await view.unmount();
+  });
+
+  const oneHandlerSnapshot: MswPanelSnapshot = {
+    activeHandlers: 1,
+    disabledHandlers: 0,
+    handlers: [
+      {
+        enabled: true,
+        id: "request:get:/users",
+        kind: "http",
+        label: "GET /api/users",
+        method: "GET",
+        path: "https://msw-panel.test/api/users",
+        used: false,
+      },
+    ],
+  };
+
+  it("opens the settings view from the header gear and back again", async () => {
+    const view = await renderPanel(oneHandlerSnapshot, { defaultOpen: true });
+
+    await click(view.container.querySelector('[aria-label="Open settings"]'));
+    expect(view.container.textContent).toContain("Auto-refresh on change");
+    expect(
+      view.container.querySelector('[aria-label="Toggle auto-refresh on change"]'),
+    ).not.toBeNull();
+
+    await click(view.container.querySelector('[aria-label="Back to handlers"]'));
+    expect(view.container.querySelector('[aria-label="Open settings"]')).not.toBeNull();
+    expect(view.container.textContent).not.toContain("Auto-refresh on change");
+
+    await view.unmount();
+  });
+
+  it("shows the manual refresh banner instead of reloading when auto-refresh is off", async () => {
+    const view = await renderPanel(oneHandlerSnapshot, { defaultOpen: true });
+
+    await click(view.container.querySelector('[role="switch"]'));
+
+    expect(reloadMock).not.toHaveBeenCalled();
+    expect(view.container.textContent).toContain("Refresh the page to apply handler changes.");
+
+    await view.unmount();
+  });
+
+  it("reloads on handler change when auto-refresh defaults to on", async () => {
+    const view = await renderPanel(oneHandlerSnapshot, {
+      defaultOpen: true,
+      defaultAutoRefresh: true,
+    });
+
+    await click(view.container.querySelector('[role="switch"]'));
+
+    expect(reloadMock).toHaveBeenCalledTimes(1);
+    expect(view.container.textContent).not.toContain("Refresh the page to apply handler changes.");
+
+    await view.unmount();
+  });
+
+  it("persists the developer's auto-refresh choice and lets it override the codebase default", async () => {
+    const first = await renderPanel(oneHandlerSnapshot, { defaultOpen: true });
+
+    // Codebase default is off; developer turns it on via the settings toggle.
+    await click(first.container.querySelector('[aria-label="Open settings"]'));
+    const toggle = first.container.querySelector('[aria-label="Toggle auto-refresh on change"]');
+    expect(toggle?.getAttribute("aria-checked")).toBe("false");
+    await click(toggle);
+    expect(toggle?.getAttribute("aria-checked")).toBe("true");
+
+    await first.unmount();
+
+    // A fresh mount reads the stored preference even though the codebase default is still off.
+    const second = await renderPanel(oneHandlerSnapshot, {
+      defaultOpen: true,
+      defaultAutoRefresh: false,
+    });
+
+    await click(second.container.querySelector('[role="switch"]'));
+    expect(reloadMock).toHaveBeenCalledTimes(1);
+
+    await second.unmount();
   });
 
   it("does not render in production unless showInProduction is true", async () => {
