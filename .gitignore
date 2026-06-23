@@ -6,3 +6,4 @@ apps/example-node/.msw-panel-state.json
 playwright-report
 test-results
 .playwright-mcp
+apps/docs/.astro
