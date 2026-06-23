@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { RequestHandler } from "msw";
+import { graphql, http, HttpResponse, type RequestHandler } from "msw";
+import { setupServer } from "msw/node";
 
-import { createMswPanelController } from "./index";
+import { createMswPanelController, defineScenarios, definePreset, withScenarios } from "./index";
 
 function createHandler(info: Record<string, unknown>): RequestHandler {
   return { info, kind: "request" } as unknown as RequestHandler;
@@ -308,5 +309,300 @@ describe("createMswPanelController", () => {
 
     unsubscribe();
     vi.useRealTimers();
+  });
+});
+
+describe("createMswPanelController scenarios and tags", () => {
+  function makeUserGroup() {
+    return defineScenarios({
+      method: "get",
+      path: "/api/user",
+      tags: ["auth"],
+      default: "success",
+      scenarios: {
+        success: () => HttpResponse.json({ name: "Barry" }),
+        error: () => HttpResponse.error(),
+      },
+    });
+  }
+
+  it("surfaces tags and scenarios on the handler snapshot", () => {
+    const user = makeUserGroup();
+    const runtime = { listHandlers: vi.fn(() => [user]), resetHandlers: vi.fn() };
+
+    const controller = createMswPanelController({ handlers: [user], runtime, storage: null });
+    const handler = controller.getSnapshot().handlers[0];
+
+    expect(handler.tags).toEqual(["auth"]);
+    expect(handler.activeScenario).toBe("success");
+    expect(handler.scenarios?.map((scenario) => scenario.id)).toEqual(["success", "error"]);
+  });
+
+  it("setScenario flips the active scenario and notifies subscribers", () => {
+    const user = makeUserGroup();
+    const runtime = { listHandlers: vi.fn(() => [user]), resetHandlers: vi.fn() };
+    const controller = createMswPanelController({ handlers: [user], runtime, storage: null });
+    const listener = vi.fn();
+    controller.subscribe(listener);
+
+    const id = controller.getSnapshot().handlers[0].id;
+    controller.setScenario(id, "error");
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(controller.getSnapshot().handlers[0].activeScenario).toBe("error");
+    // A no-op (same scenario) does not re-notify.
+    controller.setScenario(id, "error");
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies presets and reports the active preset", () => {
+    const user = makeUserGroup();
+    const projects = defineScenarios({
+      method: "get",
+      path: "/api/projects",
+      default: "full",
+      scenarios: {
+        full: () => HttpResponse.json([{ id: 1 }]),
+        empty: () => HttpResponse.json([]),
+      },
+    });
+    const loggedOut = definePreset("Logged out", [user.use("error"), projects.use("empty")]);
+    const runtime = { listHandlers: vi.fn(() => [user, projects]), resetHandlers: vi.fn() };
+
+    const controller = createMswPanelController({
+      handlers: [user, projects],
+      presets: [loggedOut],
+      runtime,
+      storage: null,
+    });
+
+    expect(controller.getSnapshot().presets).toEqual([
+      { id: "Logged out", label: "Logged out", active: false },
+    ]);
+    expect(controller.getSnapshot().activePreset).toBeNull();
+
+    controller.applyPreset("Logged out");
+
+    const snapshot = controller.getSnapshot();
+    expect(snapshot.activePreset).toBe("Logged out");
+    expect(snapshot.presets?.[0].active).toBe(true);
+    expect(snapshot.handlers[0].activeScenario).toBe("error");
+    expect(snapshot.handlers[1].activeScenario).toBe("empty");
+  });
+
+  it("applies a preset whose handlers are different instances than the tracked ones", () => {
+    // Reproduces the HMR skew: a preset captures the handler objects at module load, but the
+    // controller tracks the (re-evaluated) instances the runtime reports. They are logically the same
+    // endpoint — same method + path, so the same stable id — but different object references.
+    const config = {
+      method: "get" as const,
+      path: "/api/user",
+      default: "success" as const,
+      scenarios: {
+        success: () => HttpResponse.json({ name: "Barry" }),
+        error: () => HttpResponse.error(),
+      },
+    };
+    const presetGroup = defineScenarios(config);
+    const trackedGroup = defineScenarios(config);
+    expect(presetGroup).not.toBe(trackedGroup);
+
+    const preset = definePreset("Logged out", [presetGroup.use("error")]);
+    const runtime = { listHandlers: vi.fn(() => [trackedGroup]), resetHandlers: vi.fn() };
+    const controller = createMswPanelController({
+      handlers: [trackedGroup],
+      presets: [preset],
+      runtime,
+      storage: null,
+    });
+
+    controller.applyPreset("Logged out");
+
+    const snapshot = controller.getSnapshot();
+    expect(snapshot.handlers[0].activeScenario).toBe("error");
+    expect(snapshot.activePreset).toBe("Logged out");
+    expect(snapshot.presets?.[0].active).toBe(true);
+  });
+
+  it("scopes a preset to a feature tag and reports its active state", () => {
+    const invoices = defineScenarios({
+      method: "get",
+      path: "/api/invoices",
+      tags: ["billing"],
+      default: "paid",
+      scenarios: {
+        paid: () => HttpResponse.json([{ id: 1, status: "paid" }]),
+        overdue: () => HttpResponse.json([{ id: 1, status: "overdue" }]),
+      },
+    });
+    const pastDue = definePreset("Past due", [invoices.use("overdue")], { tag: "billing" });
+    const runtime = { listHandlers: vi.fn(() => [invoices]), resetHandlers: vi.fn() };
+
+    const controller = createMswPanelController({
+      handlers: [invoices],
+      presets: [pastDue],
+      runtime,
+      storage: null,
+    });
+
+    expect(controller.getSnapshot().presets).toEqual([
+      { id: "Past due", label: "Past due", tag: "billing", active: false },
+    ]);
+
+    controller.applyPreset("Past due");
+
+    const snapshot = controller.getSnapshot();
+    expect(snapshot.presets?.[0].active).toBe(true);
+    expect(snapshot.handlers[0].activeScenario).toBe("overdue");
+  });
+
+  it("persists and restores the active scenario across reloads", () => {
+    const store = new Map<string, string>();
+    const storage = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => void store.set(key, value),
+    };
+    const runtime = { listHandlers: vi.fn(() => [makeUserGroup()]), resetHandlers: vi.fn() };
+
+    const first = createMswPanelController({
+      handlers: runtime.listHandlers(),
+      runtime,
+      storage,
+      storageKey: "msw-panel:test",
+    });
+    const id = first.getSnapshot().handlers[0].id;
+    first.setScenario(id, "error");
+
+    // Fresh controller + fresh group reads persisted state back.
+    const reloadedGroup = makeUserGroup();
+    const reloadedRuntime = {
+      listHandlers: vi.fn(() => [reloadedGroup]),
+      resetHandlers: vi.fn(),
+    };
+    const second = createMswPanelController({
+      handlers: [reloadedGroup],
+      runtime: reloadedRuntime,
+      storage,
+      storageKey: "msw-panel:test",
+    });
+
+    expect(second.getSnapshot().handlers[0].activeScenario).toBe("error");
+  });
+
+  it("migrates legacy array-form persisted state without throwing", () => {
+    const storage = {
+      getItem: vi.fn(() => JSON.stringify(["request:get:/api/user"])),
+      setItem: vi.fn(),
+    };
+    const user = makeUserGroup();
+    const runtime = { listHandlers: vi.fn(() => [user]), resetHandlers: vi.fn() };
+
+    const controller = createMswPanelController({
+      handlers: [user],
+      runtime,
+      storage,
+      storageKey: "msw-panel:test",
+    });
+
+    // Legacy disabled id still applies; scenario falls back to its default.
+    expect(controller.getSnapshot().handlers[0].enabled).toBe(false);
+    expect(controller.getSnapshot().handlers[0].activeScenario).toBe("success");
+  });
+
+  it("changes the live response when the scenario is switched (end-to-end)", async () => {
+    const user = defineScenarios({
+      method: "get",
+      path: "https://example.test/api/user",
+      default: "success",
+      scenarios: {
+        success: () => HttpResponse.json({ name: "Barry" }),
+        error: () => HttpResponse.error(),
+      },
+    });
+    const server = setupServer(user);
+    server.listen();
+
+    const controller = createMswPanelController({
+      runtime: server,
+      handlers: [user],
+      storage: null,
+    });
+
+    const ok = await fetch("https://example.test/api/user");
+    expect(ok.status).toBe(200);
+
+    const id = controller.getSnapshot().handlers[0].id;
+    controller.setScenario(id, "error");
+
+    await expect(fetch("https://example.test/api/user")).rejects.toThrow();
+
+    server.close();
+  });
+
+  it("switches the live response for withScenarios HTTP variants (end-to-end)", async () => {
+    const user = withScenarios({
+      default: "full",
+      tags: ["users"],
+      scenarios: {
+        full: http.get("https://example.test/api/user", () => HttpResponse.json({ name: "Barry" })),
+        empty: http.get(
+          "https://example.test/api/user",
+          () => new HttpResponse(null, { status: 404 }),
+        ),
+      },
+    });
+    const server = setupServer(user);
+    server.listen();
+
+    const controller = createMswPanelController({
+      runtime: server,
+      handlers: [user],
+      storage: null,
+    });
+    const snapshot = controller.getSnapshot().handlers[0];
+    expect(snapshot.tags).toEqual(["users"]);
+    expect(snapshot.activeScenario).toBe("full");
+
+    expect((await fetch("https://example.test/api/user")).status).toBe(200);
+
+    controller.setScenario(snapshot.id, "empty");
+    expect((await fetch("https://example.test/api/user")).status).toBe(404);
+
+    server.close();
+  });
+
+  it("switches the live response for withScenarios GraphQL variants (end-to-end)", async () => {
+    const me = withScenarios({
+      default: "Signed in",
+      scenarios: {
+        "Signed in": graphql.query("Me", () =>
+          HttpResponse.json({ data: { me: { name: "Barry" } } }),
+        ),
+        "Signed out": graphql.query("Me", () => HttpResponse.json({ data: { me: null } })),
+      },
+    });
+    const server = setupServer(me);
+    server.listen({ onUnhandledRequest: "bypass" });
+
+    const controller = createMswPanelController({ runtime: server, handlers: [me], storage: null });
+    const snapshot = controller.getSnapshot().handlers[0];
+    expect(snapshot.kind).toBe("graphql");
+    expect(snapshot.scenarios?.map((scenario) => scenario.id)).toEqual(["Signed in", "Signed out"]);
+
+    const query = async () => {
+      const response = await fetch("https://example.test/graphql", {
+        body: JSON.stringify({ query: "query Me { me { name } }" }),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      });
+      return (await response.json()) as { data: { me: { name: string } | null } };
+    };
+
+    expect((await query()).data.me).toEqual({ name: "Barry" });
+
+    controller.setScenario(snapshot.id, "Signed out");
+    expect((await query()).data.me).toBeNull();
+
+    server.close();
   });
 });

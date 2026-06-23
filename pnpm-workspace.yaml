@@ -28,6 +28,8 @@ overrides:
   # (GHSA-v6wh-96g9-6wx3 server.fs.deny bypass + launch-editor UNC disclosure).
   # astro@6 requires vite ^7.3.2; 7.3.5 is the patched release within that range.
   vite@7: 7.3.5
+  # Force jsdom's transitive undici onto the patched line.
+  undici: 7.28.0
 
 catalog:
   msw: 2.14.6

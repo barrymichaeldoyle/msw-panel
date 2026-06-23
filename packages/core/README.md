@@ -1,6 +1,6 @@
 # msw-panel
 
-Framework-agnostic devtools for [Mock Service Worker](https://mswjs.io). Inspect registered handlers and toggle them on or off during development — without replacing your existing MSW setup.
+Framework-agnostic devtools for [Mock Service Worker](https://mswjs.io). Inspect registered handlers and toggle them on or off during development, without replacing your existing MSW setup.
 
 ## Install
 
@@ -48,7 +48,7 @@ const controller = createMswPanelController({
 
 ## Embedded panel
 
-Use `MswPanelEmbedded` to render the panel inline — useful in Storybook addons or custom dev toolbars:
+Use `MswPanelEmbedded` to render the panel inline, useful in Storybook addons or custom dev toolbars:
 
 ```tsx
 import { MswPanelEmbedded } from "msw-panel/react";
@@ -60,7 +60,7 @@ import { MswPanelEmbedded } from "msw-panel/react";
 
 | Prop / option      | Default          | Description                                                          |
 | ------------------ | ---------------- | -------------------------------------------------------------------- |
-| `controller`       | —                | Required. Pass `null` to render nothing.                             |
+| `controller`       | (none)           | Required. Pass `null` to render nothing.                             |
 | `defaultOpen`      | `false`          | Open the panel on first render.                                      |
 | `panelSide`        | inferred         | Which side of the trigger button the panel expands toward.           |
 | `position`         | `"bottom-right"` | Viewport corner for the floating trigger button.                     |

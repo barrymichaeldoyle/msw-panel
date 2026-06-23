@@ -3,7 +3,7 @@ title: MSW Panel
 description: Framework-agnostic devtools for Mock Service Worker.
 template: splash
 hero:
-  tagline: Inspect registered MSW handlers and toggle them on or off without changing your existing setup.
+  tagline: Inspect registered MSW handlers, toggle them, switch endpoints between scenarios, and group them with feature tags, all without changing your existing setup.
   actions:
     - text: Get started
       link: guides/getting-started/
@@ -41,7 +41,12 @@ function App() {
 ```
 
 A floating button appears in the corner. Click it to open the panel and toggle
-any handler on or off. [Vue adapter (#4)](https://github.com/barrymichaeldoyle/msw-panel/issues/4)
+any handler on or off. Then opt into more when you want it: [feature tags](/msw-panel/guides/feature-tags/)
+to organize a large handler list, and [scenarios](/msw-panel/guides/scenarios/) to switch an
+endpoint between `empty` / `error` / `loading` states. Both layer onto the setup above
+without reworking it.
+
+[Vue adapter (#4)](https://github.com/barrymichaeldoyle/msw-panel/issues/4)
 and [Svelte adapter (#5)](https://github.com/barrymichaeldoyle/msw-panel/issues/5)
 are the planned next first-party adapters. [Solid adapter (#6)](https://github.com/barrymichaeldoyle/msw-panel/issues/6)
 and [Angular adapter (#7)](https://github.com/barrymichaeldoyle/msw-panel/issues/7)

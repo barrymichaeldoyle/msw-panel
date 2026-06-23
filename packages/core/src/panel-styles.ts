@@ -7,17 +7,24 @@ export const panelFrameStyle: CSSProperties = {
   fontFamily: "system-ui, -apple-system, sans-serif",
   fontSize: "0.875rem",
   height: "30rem",
-  padding: "1rem",
+  overflow: "hidden",
   pointerEvents: "auto",
   width: "100%",
 };
 
-export const contentAreaStyle: CSSProperties = {
+// Padded chrome for header, controls, and search — the handler list sits outside as a sibling.
+export const panelChromeStyle: CSSProperties = {
+  flexShrink: 0,
+  padding: "0.5rem",
+};
+
+// Same padding as panelChromeStyle but grows to fill the frame (empty state, settings).
+export const panelChromeFillStyle: CSSProperties = {
   display: "flex",
   flex: 1,
   flexDirection: "column",
-  marginTop: "0.75rem",
   minHeight: 0,
+  padding: "0.5rem",
 };
 
 export const panelHeaderStyle: CSSProperties = {
@@ -35,6 +42,7 @@ export const headerLeftStyle: CSSProperties = {
 
 export const headerActionsStyle: CSSProperties = {
   alignItems: "center",
+  alignSelf: "flex-start",
   display: "flex",
   flexShrink: 0,
   gap: "0.5rem",
@@ -51,17 +59,24 @@ export const settingsBodyStyle: CSSProperties = {
 };
 
 export const settingRowStyle: CSSProperties = {
-  alignItems: "flex-start",
   display: "flex",
   gap: "1rem",
-  justifyContent: "space-between",
 };
 
 export const settingTextStyle: CSSProperties = {
   display: "flex",
+  flex: 1,
   flexDirection: "column",
   gap: "0.2rem",
   minWidth: 0,
+};
+
+export const settingControlStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  flexShrink: 0,
+  justifyContent: "flex-end",
+  width: "5rem",
 };
 
 export const settingTitleStyle: CSSProperties = {
@@ -76,13 +91,17 @@ export const settingDescStyle: CSSProperties = {
 
 export const logoMarkStyle: CSSProperties = {
   alignItems: "center",
-  background: "#ff6a33",
-  borderRadius: "0.375rem",
-  color: "#fff",
+  background: "#000000",
+  borderRadius: "0.5rem",
+  // The MSW mark keeps its own dark background per their brand guidelines, so on
+  // a dark panel it blends in. A faint ring defines the tile against the
+  // surrounding chrome on both light and dark themes.
+  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.14)",
   display: "flex",
   flexShrink: 0,
   height: "2.25rem",
   justifyContent: "center",
+  lineHeight: 0,
   width: "2.25rem",
 };
 
@@ -99,18 +118,26 @@ export const titleStyle: CSSProperties = {
   fontWeight: 600,
 };
 
+export const summaryRowStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "0.5rem 0.75rem",
+  justifyContent: "space-between",
+  marginTop: "0.75rem",
+};
+
 export const summaryStyle: CSSProperties = {
   display: "flex",
   fontVariantNumeric: "tabular-nums",
   fontSize: "0.8rem",
   gap: "0.75rem",
-  marginTop: "0.75rem",
 };
 
-export const toolbarStyle: CSSProperties = {
+export const summaryActionsStyle: CSSProperties = {
   display: "flex",
-  gap: "0.5rem",
-  marginTop: "0.75rem",
+  flexShrink: 0,
+  gap: "0.35rem",
 };
 
 export const refreshBannerStyle: CSSProperties = {
@@ -135,9 +162,18 @@ export const refreshButtonStyle: CSSProperties = {
   padding: "0.3rem 0.625rem",
 };
 
-export const searchWrapStyle: CSSProperties = {
+export const searchRowStyle: CSSProperties = {
+  alignItems: "center",
   display: "flex",
   flexShrink: 0,
+  gap: "0.75rem",
+  marginTop: "0.75rem",
+};
+
+export const searchWrapStyle: CSSProperties = {
+  display: "flex",
+  flex: 1,
+  minWidth: 0,
   position: "relative",
 };
 
@@ -168,38 +204,81 @@ export const noResultsStyle: CSSProperties = {
   textAlign: "center",
 };
 
+// Full-width scroll area; row padding keeps handler content aligned with the chrome above.
 export const listStyle: CSSProperties = {
-  border: "1px solid rgba(148, 163, 184, 0.18)",
-  borderRadius: "0.75rem",
   flex: 1,
   listStyle: "none",
-  margin: "0.75rem 0 0",
+  margin: 0,
   minHeight: 0,
   overflowY: "auto",
   padding: 0,
 };
 
 export const rowStyle: CSSProperties = {
-  alignItems: "flex-start",
   display: "flex",
-  gap: "0.75rem",
+  flexDirection: "column",
+  gap: "0.5rem",
+  padding: "0.55rem 0.5rem",
+};
+
+export const rowHeaderStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  gap: "0.5rem",
   justifyContent: "space-between",
-  padding: "0.6rem 0.75rem",
+  minWidth: 0,
+  width: "100%",
 };
 
 export const treeSubListStyle: CSSProperties = {
   listStyle: "none",
   margin: 0,
   padding: 0,
-  paddingLeft: "0.75rem",
+  paddingInlineStart: "0.75rem",
+  paddingInlineEnd: "0.25rem",
 };
 
 export const treeControlsStyle: CSSProperties = {
   display: "flex",
-  gap: "0.75rem",
   flexShrink: 0,
-  justifyContent: "flex-end",
-  margin: "0.75rem 0 0",
+  gap: "0.75rem",
+};
+
+// "Only used" filter toggle in the search row: one <label> wraps the checkbox and a stacked text
+// label + live used-count, so clicking either line toggles it and the checkbox stays vertically
+// centered against the two-line stack.
+export const onlyUsedToggleStyle: CSSProperties = {
+  alignItems: "center",
+  cursor: "pointer",
+  display: "flex",
+  flexShrink: 0,
+  gap: "0.35rem",
+  userSelect: "none",
+};
+
+export const onlyUsedTextStyle: CSSProperties = {
+  alignItems: "flex-start",
+  display: "flex",
+  flexDirection: "column",
+  lineHeight: 1.1,
+};
+
+export const onlyUsedLabelStyle: CSSProperties = {
+  fontSize: "0.72rem",
+  whiteSpace: "nowrap",
+};
+
+export const onlyUsedCountStyle: CSSProperties = {
+  fontSize: "0.66rem",
+  fontVariantNumeric: "tabular-nums",
+  opacity: 0.7,
+  whiteSpace: "nowrap",
+};
+
+export const onlyUsedCheckboxStyle: CSSProperties = {
+  cursor: "pointer",
+  flexShrink: 0,
+  margin: 0,
 };
 
 export const treeControlButtonStyle: CSSProperties = {
@@ -208,7 +287,11 @@ export const treeControlButtonStyle: CSSProperties = {
   cursor: "pointer",
   font: "inherit",
   fontSize: "0.72rem",
+  // Sized to fit the longer "Collapse all" label and right-aligned, so toggling between the two
+  // labels doesn't change the button's width and shift the rest of the search row.
+  minWidth: "4.5rem",
   padding: "0.1rem 0.2rem",
+  textAlign: "right",
   textDecoration: "underline",
 };
 
@@ -221,7 +304,7 @@ export const groupRowStyle: CSSProperties = {
   display: "flex",
   font: "inherit",
   gap: "0.4rem",
-  padding: "0.5rem 0.75rem",
+  padding: "0.5rem 0.5rem",
   textAlign: "left",
   width: "100%",
 };
@@ -242,17 +325,10 @@ export const groupCountStyle: CSSProperties = {
   fontVariantNumeric: "tabular-nums",
 };
 
-export const rowMainStyle: CSSProperties = {
-  display: "flex",
-  flex: 1,
-  flexDirection: "column",
-  gap: "0.35rem",
-  minWidth: 0,
-};
-
 export const rowMetaStyle: CSSProperties = {
   alignItems: "center",
   display: "flex",
+  flex: 1,
   flexWrap: "wrap",
   gap: "0.4rem",
   minWidth: 0,
@@ -262,6 +338,13 @@ export const rowContentStyle: CSSProperties = {
   display: "flex",
   flex: 1,
   minWidth: 0,
+};
+
+export const rowControlsStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  flexShrink: 0,
+  gap: "0.5rem",
 };
 
 export const usageMetaStyle: CSSProperties = {
@@ -304,27 +387,98 @@ export const pathStyle: CSSProperties = {
   whiteSpace: "normal",
 };
 
-const sharedButtonStyle: CSSProperties = {
-  borderRadius: "0.5rem",
+export const tagChipStyle: CSSProperties = {
+  borderRadius: "999px",
+  flexShrink: 0,
+  fontFamily: "ui-monospace, monospace",
+  fontSize: "0.6rem",
+  letterSpacing: "0.02em",
+  padding: "0.1rem 0.4rem",
+};
+
+export const scenarioSelectStyle: CSSProperties = {
+  borderRadius: "0.4rem",
+  cursor: "pointer",
+  flexShrink: 0,
+  font: "inherit",
+  fontSize: "0.72rem",
+  maxWidth: "10rem",
+  outline: "none",
+  padding: "0.2rem 0.4rem",
+};
+
+// Group header laid out as a row so the feature scenario selector can sit beside the toggle.
+// Background matches the panel frame — applied via theme.groupHeader at render time.
+export const groupHeaderRowStyle: CSSProperties = {
+  alignItems: "center",
+  display: "flex",
+  gap: "0.5rem",
+  paddingInlineEnd: "1.25rem",
+};
+
+// Compact selector shown in a feature group header to drive the whole feature's scenario state.
+export const featureScenarioSelectStyle: CSSProperties = {
+  borderRadius: "0.4rem",
+  cursor: "pointer",
+  flexShrink: 0,
+  font: "inherit",
+  fontSize: "0.68rem",
+  maxWidth: "11rem",
+  outline: "none",
+  padding: "0.15rem 0.3rem",
+};
+
+export const presetSelectStyle: CSSProperties = {
+  borderRadius: "0.4rem",
   cursor: "pointer",
   font: "inherit",
   fontSize: "0.75rem",
+  outline: "none",
+  padding: "0.25rem 0.4rem",
 };
 
+// Header icon buttons (gear, close, back) — fixed equal-sized squares so they line up.
 export const ghostButtonStyle: CSSProperties = {
-  ...sharedButtonStyle,
-  padding: "0.35rem 0.6rem",
+  alignItems: "center",
+  borderRadius: "0.5rem",
+  cursor: "pointer",
+  display: "inline-flex",
+  flexShrink: 0,
+  font: "inherit",
+  fontSize: "0.85rem",
+  height: "1.9rem",
+  justifyContent: "center",
+  lineHeight: 1,
+  padding: 0,
+  width: "1.9rem",
 };
 
-export const actionButtonStyle: CSSProperties = {
-  ...sharedButtonStyle,
-  padding: "0.35rem 0.6rem",
+// Compact text buttons used for the inline "Enable all" / "Disable all" / "Sync" actions.
+export const compactButtonStyle: CSSProperties = {
+  borderRadius: "0.45rem",
+  cursor: "pointer",
+  font: "inherit",
+  fontSize: "0.72rem",
+  padding: "0.25rem 0.5rem",
+  whiteSpace: "nowrap",
+};
+
+export const settingSelectStyle: CSSProperties = {
+  borderRadius: "0.4rem",
+  cursor: "pointer",
+  flexShrink: 0,
+  font: "inherit",
+  fontSize: "0.78rem",
+  outline: "none",
+  padding: "0.25rem 0.4rem",
 };
 
 export const triggerButtonStyle: CSSProperties = {
   alignItems: "center",
   border: 0,
-  borderRadius: "50%",
+  // Rounded square echoing the MSW logo tile rather than a circle, so the
+  // launcher reads as the MSW mark. Radius matches the logo's own corners.
+  borderRadius: "0.6rem",
   cursor: "pointer",
   display: "flex",
   height: "3.25rem",
@@ -383,7 +537,6 @@ export const emptyStateStyle: CSSProperties = {
   flexDirection: "column",
   gap: "0.4rem",
   justifyContent: "center",
-  padding: "1rem",
   textAlign: "center",
 };
 

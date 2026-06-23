@@ -28,7 +28,8 @@ The controller exposes a derived snapshot rather than leaking internal state. A 
 
 - the active handler count
 - the disabled handler count
-- one entry per handler with `id`, `enabled`, `kind`, `label`, `method`, and `path`
+- one entry per handler with `id`, `enabled`, `kind`, `label`, `method`, `path`, and `used`, plus optional `tags`, `scenarios`, and `activeScenario`
+- the registered global `presets` and the currently matching `activePreset`
 
 Because the snapshot is plain data, UI adapters and transports do not need to know anything about MSW internals.
 
@@ -49,6 +50,10 @@ That means `msw-panel` does not replace your mocking setup. It consumes:
 
 ## Sync behavior
 
-The controller starts from the supplied handler set and can rebuild from the runtime later with `sync()`. Enabled state is preserved where handler identities still match.
+The controller starts from the supplied handler set and can rebuild from the runtime later with `sync()`. Enabled state and scenario selections are preserved where handler identities still match.
 
 That design is simple and predictable, but it also explains the current limitation: runtime-added handlers do not appear automatically unless the host calls `controller.sync()`.
+
+## Scenarios and presets
+
+[`defineScenarios`](/msw-panel/guides/scenarios/) registers a single MSW handler whose resolver dispatches to the currently-active scenario, held in closure-mutable state on the group. `setScenario()` flips that state and emits a new snapshot. It does **not** call `resetHandlers`, so the handler keeps matching and the swap takes effect on the next request. A `definePreset` simply records a set of scenario selections; `applyPreset()` applies them all and the snapshot reports which preset (if any) the current selections match. Because all of this lives next to the handlers, scenario and preset commands flow over the bridge to the controller the same way enable/disable does.

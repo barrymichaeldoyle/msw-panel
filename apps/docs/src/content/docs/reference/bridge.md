@@ -39,8 +39,10 @@ type MswPanelBridgeMessage =
 
 Supported commands:
 
+- `apply-preset`
 - `set-all-enabled`
 - `set-enabled`
+- `set-scenario`
 - `sync`
 - `toggle`
 

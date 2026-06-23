@@ -7,5 +7,6 @@ test("production demo still shows the panel trigger when explicitly enabled", as
   await expect(page.getByRole("button", { name: "Open MSW Panel" })).toBeVisible();
 
   await page.getByRole("button", { name: "Open MSW Panel" }).click();
-  await expect(page.getByText("0 disabled")).toBeVisible();
+  // Panel opened and rendered its summary (enabled count shown as a fraction of the total).
+  await expect(page.locator('[data-msw-panel-count="enabled"]')).toBeVisible();
 });

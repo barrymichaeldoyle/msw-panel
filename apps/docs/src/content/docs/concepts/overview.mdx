@@ -5,7 +5,7 @@ description: What msw-panel is and how it fits into your MSW setup.
 
 import PackageManagerTabs from "../../../components/PackageManagerTabs.astro";
 
-`msw-panel` adds a floating devtools panel to any app that already uses Mock Service Worker. It lets you inspect registered handlers and toggle them on or off without changing your MSW setup.
+`msw-panel` adds a floating devtools panel to any app that already uses Mock Service Worker. It lets you inspect registered handlers, toggle them on or off, switch endpoints between named [scenarios](/msw-panel/guides/scenarios/), and group them with [feature tags](/msw-panel/guides/feature-tags/), without changing your MSW setup.
 
 ## The common case
 
@@ -31,6 +31,15 @@ function App() {
 
 See [Getting started](/msw-panel/guides/getting-started/) for the full setup.
 
+## Adopt incrementally
+
+Everything beyond toggling is opt-in and layers onto the setup above without reworking it:
+
+- **[Feature tags](/msw-panel/guides/feature-tags/)** wrap handlers you already have. No config changes.
+- **[Scenarios](/msw-panel/guides/scenarios/)** reuse the resolvers you already wrote, turning one endpoint into a set of switchable response states.
+
+You can introduce them one handler at a time.
+
 ## Framework adapters
 
 The React adapter (`msw-panel/react`) is the first supported UI package.
@@ -43,6 +52,6 @@ determine priority.
 
 ## Packages
 
-- `msw-panel` — the controller. Tracks handlers, persists disabled state, applies changes through the MSW runtime.
-- `msw-panel/react` — the React panel UI.
-- `msw-panel/bridge` — optional transport layer for setups where the panel lives in a separate window, tab, or process. Most projects do not need this.
+- `msw-panel`: the controller. Tracks handlers, persists disabled state, applies changes through the MSW runtime.
+- `msw-panel/react`: the React panel UI.
+- `msw-panel/bridge`: optional transport layer for setups where the panel lives in a separate window, tab, or process. Most projects do not need this.

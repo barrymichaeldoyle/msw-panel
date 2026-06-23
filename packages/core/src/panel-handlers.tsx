@@ -5,9 +5,12 @@ import {
   methodBadgeStyle,
   pathStyle,
   rowContentStyle,
-  rowMainStyle,
+  rowControlsStyle,
+  rowHeaderStyle,
   rowMetaStyle,
   rowStyle,
+  scenarioSelectStyle,
+  tagChipStyle,
   toggleThumbStyle,
   toggleTrackBase,
   usageMetaStyle,
@@ -15,11 +18,13 @@ import {
 
 interface HandlerRowProps {
   handler: MswPanelHandlerSnapshot;
+  isLast?: boolean;
+  onSetScenario?: (scenarioId: string) => void;
   onToggle: () => void;
   theme: PanelThemeStyles;
 }
 
-export function HandlerRow({ handler, onToggle, theme }: HandlerRowProps) {
+export function HandlerRow({ handler, isLast, onSetScenario, onToggle, theme }: HandlerRowProps) {
   const badge = handler.method ? (
     <span style={{ ...methodBadgeStyle, ...theme.methodBadge }}>
       {handler.method === "*" ? "ANY" : handler.method}
@@ -29,26 +34,53 @@ export function HandlerRow({ handler, onToggle, theme }: HandlerRowProps) {
   );
   const label = handler.path ?? handler.label;
   const usageLabel = handler.used ? "used" : "idle";
+  const hasScenarios = handler.scenarios && handler.scenarios.length > 0;
 
   return (
     <li
       data-handler-id={handler.id}
       data-handler-method={handler.method ?? undefined}
       data-handler-path={handler.path ?? undefined}
-      style={{ ...rowStyle, ...theme.rowBorder, ...(handler.used ? null : theme.rowUnused) }}
+      style={{
+        ...rowStyle,
+        ...(isLast ? null : theme.rowBorder),
+        ...(handler.used ? null : theme.rowUnused),
+      }}
     >
-      <div style={rowMainStyle}>
+      <div style={rowHeaderStyle}>
         <div style={rowMetaStyle}>
           {badge}
           <span style={{ ...usageMetaStyle, ...theme.usageMeta }}>{usageLabel}</span>
+          {(handler.tags ?? []).map((tag) => (
+            <span data-handler-tag={tag} key={tag} style={{ ...tagChipStyle, ...theme.tagChip }}>
+              {tag}
+            </span>
+          ))}
         </div>
-        <div style={rowContentStyle}>
-          <span style={{ ...pathStyle, ...(handler.used ? theme.pathUsed : theme.pathUnused) }}>
-            {label}
-          </span>
+        <div style={rowControlsStyle}>
+          {hasScenarios ? (
+            <select
+              aria-label={`Scenario for ${label}`}
+              data-handler-scenario={handler.id}
+              onChange={(event) => onSetScenario?.(event.target.value)}
+              style={{ ...scenarioSelectStyle, ...theme.scenarioSelect }}
+              value={handler.activeScenario}
+            >
+              {handler.scenarios?.map((scenario) => (
+                <option key={scenario.id} value={scenario.id}>
+                  {scenario.label}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          <ToggleSwitch enabled={handler.enabled} label={label} onToggle={onToggle} theme={theme} />
         </div>
       </div>
-      <ToggleSwitch enabled={handler.enabled} label={label} onToggle={onToggle} theme={theme} />
+      <div style={rowContentStyle}>
+        <span style={{ ...pathStyle, ...(handler.used ? theme.pathUsed : theme.pathUnused) }}>
+          {label}
+        </span>
+      </div>
     </li>
   );
 }

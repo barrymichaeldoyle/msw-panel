@@ -1,0 +1,193 @@
+---
+title: Scenarios
+description: Give an endpoint multiple named response states and switch between them from the panel.
+---
+
+A **scenario** lets one endpoint have several named response states, like `success`,
+`empty`, `error`, `loading`, whatever your app needs. The panel renders a selector on
+that handler's row; exactly one scenario is active at a time, and switching it changes
+the live response with no code changes.
+
+## Start from a handler you already have
+
+Scenarios are designed to layer onto an existing MSW setup. Take a handler you already
+wrote:
+
+```ts
+http.get("/api/user", () => HttpResponse.json({ name: "Barry" }));
+```
+
+Move that resolver into a `defineScenarios` call as the default scenario, then add the
+extra states you want:
+
+```ts
+import { defineScenarios } from "msw-panel";
+
+export const user = defineScenarios({
+  method: "get",
+  path: "/api/user",
+  default: "Signed in",
+  scenarios: {
+    "Signed in": () => HttpResponse.json({ name: "Barry" }), // ← your existing resolver
+    "Signed out": () => new HttpResponse(null, { status: 401 }),
+    Error: () => new HttpResponse(null, { status: 500 }),
+  },
+});
+```
+
+`defineScenarios` returns a regular MSW `HttpHandler`, so you register it exactly like
+before. Drop it into the same array you pass to `setupWorker`/`setupServer`. **Nothing
+about your controller or `<MswPanel>` setup changes**; the panel picks the scenarios up
+automatically.
+
+## Reference
+
+`defineScenarios` is fully type-safe: `default` and every `preset` selection are checked
+against the scenario keys you declare.
+
+```ts
+import { http, HttpResponse } from "msw";
+import { defineScenarios } from "msw-panel";
+
+export const user = defineScenarios({
+  method: "get",
+  path: "/api/user",
+  tags: ["auth"],
+  default: "Signed in",
+  scenarios: {
+    "Signed in": () => HttpResponse.json({ name: "Barry", role: "Maintainer" }),
+    "Signed out": () => new HttpResponse(null, { status: 401 }),
+    Error: () => new HttpResponse(null, { status: 500 }),
+  },
+});
+
+export const handlers = [
+  user,
+  // ...your other http/graphql handlers
+];
+```
+
+The keys of `scenarios` become the scenario ids and labels. Each value is an ordinary
+[MSW response resolver](https://mswjs.io/docs/concepts/response-resolver), so you can
+`await delay(...)`, read the request, return `HttpResponse.json(...)`, and so on.
+
+| Field       | Description                                                       |
+| ----------- | ----------------------------------------------------------------- |
+| `method`    | HTTP method, e.g. `"get"`. Same names as MSW's `http.*` methods.  |
+| `path`      | URL path or pattern, e.g. `"/api/user"` or `"/api/users/:id"`.    |
+| `name`      | Optional display label for the row (defaults to `"METHOD path"`). |
+| `tags`      | Optional [feature tags](/msw-panel/guides/feature-tags/).         |
+| `default`   | The scenario active before the user changes anything.             |
+| `scenarios` | Map of scenario id → response resolver.                           |
+
+Switching a scenario in the panel takes effect on the **next request**. No reload
+needed. Because data already on the page was fetched under the previous scenario, the
+panel still shows its usual "refresh to apply" prompt so you can re-fetch.
+
+## Wrap existing handlers (and GraphQL)
+
+`defineScenarios` is HTTP-shaped. When you'd rather wrap handlers you already have, or you
+need **GraphQL** scenarios, use `withScenarios` instead. Each scenario is a fully-formed
+MSW handler, so any handler kind works:
+
+```ts
+import { graphql, HttpResponse } from "msw";
+import { withScenarios } from "msw-panel";
+
+export const me = withScenarios({
+  name: "GetUser",
+  tags: ["auth"],
+  default: "Signed in",
+  scenarios: {
+    "Signed in": graphql.query("GetUser", () =>
+      HttpResponse.json({ data: { user: { name: "Barry" } } }),
+    ),
+    "Signed out": graphql.query("GetUser", () => HttpResponse.json({ data: { user: null } })),
+  },
+});
+```
+
+`withScenarios` returns one handler whose matching and response delegate to the active
+variant. Register it like any other handler. Every variant must target the same endpoint
+(same route, or same GraphQL operation); the row's label and grouping come from the
+default variant. It works for HTTP handlers too, when you already have them as
+`http.get(...)` values and don't want to restructure into a resolver map.
+
+## Global presets
+
+A **preset** is a named set of scenario selections applied together, useful for
+reproducing a whole app state like "Logged out" or "Empty account" in one click. Build
+one with `definePreset`, using each group's type-safe `.use(...)`:
+
+```ts
+import { definePreset } from "msw-panel";
+import { user, projects } from "./handlers";
+
+export const presets = [
+  definePreset("Signed out", [user.use("Signed out")]),
+  definePreset("Empty account", [user.use("Signed in"), projects.use("Empty")]),
+];
+```
+
+Pass them to the controller:
+
+```ts
+const controller = createMswPanelController({
+  runtime: worker,
+  presets,
+});
+```
+
+The panel shows a **Scenario preset** selector above the handler list. Picking a preset
+sets every referenced endpoint's scenario at once; the selector reads `Custom…` whenever
+the current selections don't exactly match a preset.
+
+## Feature-scoped presets and feature states
+
+A global preset touches the whole app. Often you'd rather drive **one feature** into a
+named state — "put billing into past-due" — without disturbing everything else. Scope a
+preset to a [feature tag](/msw-panel/guides/feature-tags/) by passing `{ tag }`:
+
+```ts
+import { definePreset } from "msw-panel";
+import { subscription, invoices } from "./handlers"; // both tagged "billing"
+
+export const presets = [
+  definePreset("Past due", [subscription.use("Past due"), invoices.use("Past due")], {
+    tag: "billing",
+  }),
+];
+```
+
+When the panel is **grouped by feature**, a feature-scoped preset appears in that feature's
+group header instead of the global selector at the top — right next to the handlers it
+affects. Different features' presets are independent, so you can put billing into "Past
+due" and auth into "Signed out" at the same time.
+
+The same feature group header also gives you a zero-config **"Set all to"** control: when
+the feature's handlers happen to share scenario names (e.g. several billing endpoints all
+declare `Active` / `Past due` / `Error`), the header lets you switch the whole feature to
+one of those scenarios at once — no `definePreset` needed. The header selector reflects the
+feature's current state, reading `Mixed…` when its handlers disagree.
+
+## Persistence
+
+Per-handler scenario selections are persisted to `localStorage` alongside disabled state
+(under the same `storageKey`) and restored on reload, so your chosen scenarios survive a
+refresh. Pass `storage: null` to opt out.
+
+## Remote panels
+
+Scenario and preset switching works over the [bridge](/msw-panel/guides/remote-bridge/)
+too. The panel sends `set-scenario` / `apply-preset` commands to the controller, which
+always lives next to your handlers.
+
+## defineScenarios vs withScenarios
+
+- **`defineScenarios`**: most concise for HTTP. Declare `method` + `path` once and a map of
+  resolvers. Best when you're writing the endpoint fresh or are happy to restructure.
+- **`withScenarios`**: wrap fully-formed MSW handlers as variants. Use it for **GraphQL**,
+  or when you want to keep handlers you already have without converting them to a resolver map.
+
+Both return a handler you register normally and both support `tags`, `name`, and `.use(...)`
+for presets, so you can mix them freely.

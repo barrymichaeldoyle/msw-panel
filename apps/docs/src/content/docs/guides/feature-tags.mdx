@@ -1,0 +1,67 @@
+---
+title: Feature tags
+description: Tag handlers by feature so they are searchable, filterable, and groupable in the panel.
+---
+
+**Feature tags** label handlers by the product area they belong to, like `"auth"`,
+`"billing"`, or `"projects"`, so a large handler list stays navigable. Tags are
+searchable, filterable, and groupable in the panel.
+
+Tags are the lowest-friction feature to adopt: wrap a handler you already have and you're
+done. There are **no changes to your controller or `<MswPanel>` setup**. The panel reads
+the tags straight off the handlers MSW already knows about.
+
+## Tag a single handler
+
+`withTags` attaches tags and returns the same handler, so it composes inline:
+
+```ts
+import { http, HttpResponse } from "msw";
+import { withTags } from "msw-panel";
+
+export const handlers = [
+  withTags(
+    http.get("/api/user", () => HttpResponse.json({ name: "Barry" })),
+    ["auth", "profile"],
+  ),
+];
+```
+
+Tags work on **any** handler kind: HTTP, GraphQL, and WebSocket.
+
+## Tag a group of handlers
+
+`tagged` applies the same tags to every handler in a list and returns the list, so you
+can spread it straight into your handlers array:
+
+```ts
+import { http } from "msw";
+import { tagged } from "msw-panel";
+
+export const handlers = [
+  ...tagged(
+    ["billing"],
+    [http.get("/api/invoices", invoicesResolver), http.post("/api/pay", payResolver)],
+  ),
+];
+```
+
+`defineScenarios` also accepts a `tags` field, so scenario groups can be tagged at the
+same time you declare them.
+
+## Using tags in the panel
+
+- **Search**: typing in the panel's filter box matches handler labels, paths, methods,
+  **and** tags, so searching `billing` surfaces every handler tagged that way.
+- **Group by tag**: open **Settings → Group by** and choose **Tag** to collapse
+  the list into one expandable group per tag. A handler with several tags appears under
+  each; untagged handlers fall into an _Untagged_ bucket. When any handler has tags this is
+  the default, so you usually get it for free; set it explicitly with
+  `<MswPanel defaultGroupBy="tag" />` (the developer's saved choice still wins per
+  browser).
+- **Drive a whole feature's scenarios**: when grouped by tag, each group header carries
+  a scenario control for [feature-scoped presets](/msw-panel/guides/scenarios/#feature-scoped-presets-and-feature-states)
+  and a "Set all to" option that switches every scenario handler in the feature at once.
+
+Tags flow through the [bridge](/msw-panel/guides/remote-bridge/) on the handler snapshot,
+so they show up in remote panels as well.

@@ -18,12 +18,17 @@ export default defineConfig({
       description: "Framework-agnostic devtools for Mock Service Worker.",
       disable404Route: true,
       favicon: "/favicon.svg",
+      logo: { src: "./src/assets/msw-logo.svg" },
       tagline: "Framework-agnostic Mock Service Worker controls",
       title: "MSW Panel",
       sidebar: [
         {
           label: "Getting started",
           items: ["concepts/overview", "guides/getting-started"],
+        },
+        {
+          label: "Features",
+          items: ["guides/scenarios", "guides/feature-tags"],
         },
         {
           label: "Reference",

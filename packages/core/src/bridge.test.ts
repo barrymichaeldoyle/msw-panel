@@ -35,6 +35,7 @@ function createControllerMock(): MswPanelController {
   };
 
   return {
+    applyPreset: vi.fn(),
     getSnapshot: vi.fn(() => snapshot),
     setAllEnabled: vi.fn((enabled: boolean) => {
       snapshot = {
@@ -64,6 +65,7 @@ function createControllerMock(): MswPanelController {
       };
       emit();
     }),
+    setScenario: vi.fn(),
     subscribe: vi.fn((listener: () => void) => {
       listeners.add(listener);
 
@@ -336,6 +338,25 @@ describe("msw panel bridge", () => {
 
     expect(controller.toggle).toHaveBeenCalledWith("request:get:/user");
     expect(client.getSnapshot().handlers[0]).toEqual(expect.objectContaining({ enabled: false }));
+  });
+
+  it("forwards scenario and preset commands to the server controller", () => {
+    const { clientTransport, serverTransport } = createInMemoryMswPanelBridgeTransportPair();
+    const controller = createControllerMock();
+
+    createMswPanelBridgeServer({
+      controller,
+      transport: serverTransport,
+    });
+    const client = createMswPanelBridgeClient({
+      transport: clientTransport,
+    });
+
+    client.setScenario("request:get:/user", "error");
+    client.applyPreset("Logged out");
+
+    expect(controller.setScenario).toHaveBeenCalledWith("request:get:/user", "error");
+    expect(controller.applyPreset).toHaveBeenCalledWith("Logged out");
   });
 
   it("notifies client subscribers when a new snapshot arrives", () => {

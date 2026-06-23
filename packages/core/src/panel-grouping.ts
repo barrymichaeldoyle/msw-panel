@@ -129,3 +129,39 @@ export function groupHandlers(handlers: readonly MswPanelHandlerSnapshot[]): Han
 
   return { roots, ungrouped };
 }
+
+/**
+ * Groups handlers by feature tag. A handler with multiple tags appears under each of its
+ * tags; handlers with no tags are returned in `ungrouped`. Pure and order-stable.
+ */
+export function groupHandlersByTag(handlers: readonly MswPanelHandlerSnapshot[]): HandlerGroups {
+  const byTag = new Map<string, MswPanelHandlerSnapshot[]>();
+  const ungrouped: MswPanelHandlerSnapshot[] = [];
+
+  for (const handler of handlers) {
+    const tags = handler.tags ?? [];
+    if (tags.length === 0) {
+      ungrouped.push(handler);
+      continue;
+    }
+    for (const tag of tags) {
+      const bucket = byTag.get(tag);
+      if (bucket) {
+        bucket.push(handler);
+      } else {
+        byTag.set(tag, [handler]);
+      }
+    }
+  }
+
+  const roots = [...byTag.entries()]
+    .map(([tag, tagHandlers]) => ({
+      label: tag,
+      key: `tag:${tag}`,
+      children: [],
+      handlers: tagHandlers,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  return { roots, ungrouped };
+}

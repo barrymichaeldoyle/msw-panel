@@ -34,7 +34,7 @@ If your app adds handlers at runtime, call `controller.sync()` after that change
 
 ## Notes
 
-- `defaultOpen` defaults to `false` — the panel starts as a small floating icon button that opens on click.
+- `defaultOpen` defaults to `false`. The panel starts as a small floating icon button that opens on click.
 - `theme` defaults to `"dark"`.
 - `showCount` defaults to `true` and controls the enabled-handler badge on the collapsed trigger button.
 - `panelSide` controls which direction the panel expands from the trigger button (`"top"` or `"bottom"`). Defaults to the natural direction for the chosen corner.
@@ -45,7 +45,7 @@ If your app adds handlers at runtime, call `controller.sync()` after that change
 
 ## Embedded panel
 
-Use `MswPanelEmbedded` when you want the panel to live inline rather than floating — for example in a Storybook addon panel or a custom dev toolbar:
+Use `MswPanelEmbedded` when you want the panel to live inline rather than floating, for example in a Storybook addon panel or a custom dev toolbar:
 
 ```tsx
 import { MswPanelEmbedded } from "msw-panel/react";

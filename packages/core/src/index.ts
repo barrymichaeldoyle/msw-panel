@@ -1,5 +1,15 @@
 import type { RequestHandler, WebSocketHandler } from "msw";
 
+import {
+  type MswPanelPreset,
+  type ScenarioDescriptor,
+  type ScenarioGroupMeta,
+  type ScenarioSelection,
+  readMswPanelMeta,
+} from "./scenarios.js";
+
+export * from "./scenarios.js";
+
 type MswAnyHandler = RequestHandler | WebSocketHandler;
 
 export type MswPanelHandlerKind = "graphql" | "http" | "unknown" | "websocket";
@@ -8,6 +18,8 @@ export type MswPanelHandlerKind = "graphql" | "http" | "unknown" | "websocket";
 export interface MswPanelHandlerSnapshot {
   /** Stable identifier used to persist and re-apply disabled state across reloads. */
   id: string;
+  /** Currently active scenario id, when this handler is a scenario group. */
+  activeScenario?: string;
   /** Whether this handler is currently active in the MSW runtime. */
   enabled: boolean;
   /** Broad category of handler: HTTP request, GraphQL operation, WebSocket, or unknown. */
@@ -18,18 +30,53 @@ export interface MswPanelHandlerSnapshot {
   method: string | null;
   /** URL path or pattern, or `null` for non-HTTP handlers. */
   path: string | null;
+  /** Named scenarios for this handler, when created with `defineScenarios`. */
+  scenarios?: ScenarioDescriptor[];
+  /**
+   * Feature tags attached via `withTags`, `tagged`, or `defineScenarios`. May be absent on
+   * snapshots produced by older bridge servers; treat a missing value as no tags.
+   */
+  tags?: string[];
   /** `true` if this handler has matched at least one request in the current session. */
   used: boolean;
 }
 
+/** A scenario preset as surfaced to the panel UI. */
+export interface MswPanelPresetSnapshot {
+  /** Stable preset id. */
+  id: string;
+  /** Display label shown in the preset selector. */
+  label: string;
+  /**
+   * Feature tag this preset is scoped to, when defined with `definePreset(..., { tag })`. Tagged
+   * presets render in their feature's group header; untagged ones in the global selector.
+   */
+  tag?: string;
+  /**
+   * `true` when every selection in this preset currently matches the live scenario state. May be
+   * absent on snapshots produced by older bridge servers; treat a missing value as `false`.
+   */
+  active?: boolean;
+}
+
 /** Aggregated view of all handlers and their states, returned by `getSnapshot()`. */
 export interface MswPanelSnapshot {
+  /**
+   * Id of the preset whose selections all currently match, or `null` when none match. May be
+   * absent on snapshots produced by older bridge servers.
+   */
+  activePreset?: string | null;
   /** Number of handlers currently enabled in the MSW runtime. */
   activeHandlers: number;
   /** Number of handlers currently disabled. */
   disabledHandlers: number;
   /** Ordered list of handler snapshots. */
   handlers: MswPanelHandlerSnapshot[];
+  /**
+   * Available global scenario presets. May be absent on snapshots produced by older bridge
+   * servers; treat a missing value as no presets.
+   */
+  presets?: MswPanelPresetSnapshot[];
 }
 
 /** Storage interface for persisting disabled handler IDs across reloads. Compatible with `localStorage`. */
@@ -68,6 +115,11 @@ export interface CreateMswPanelControllerOptions {
    * Defaults to `true`.
    */
   defaultEnabled?: boolean;
+  /**
+   * Global scenario presets (from `definePreset`) shown as a single selector in the panel.
+   * Applying one sets the active scenario of every handler it references at once.
+   */
+  presets?: readonly MswPanelPreset[];
 }
 
 /**
@@ -77,12 +129,16 @@ export interface CreateMswPanelControllerOptions {
  * @see https://barrymichaeldoyle.github.io/msw-panel/reference/core/
  */
 export interface MswPanelController {
+  /** Applies a registered preset by id, setting every referenced handler's active scenario. */
+  applyPreset(presetId: string): void;
   /** Returns the current immutable snapshot of all handler states. */
   getSnapshot(): MswPanelSnapshot;
   /** Enables or disables all handlers at once. */
   setAllEnabled(nextEnabled: boolean): void;
   /** Enables or disables a single handler by its stable ID. */
   setEnabled(id: string, nextEnabled: boolean): void;
+  /** Sets the active scenario for a scenario-group handler by its stable ID. */
+  setScenario(id: string, scenarioId: string): void;
   /** Subscribes a listener to snapshot changes. Returns an unsubscribe function. */
   subscribe(listener: () => void): () => void;
   /** Re-reads the runtime's current handler list and rebuilds the snapshot. Call after adding handlers at runtime. */
@@ -96,7 +152,9 @@ interface HandlerRecord {
   id: string;
   enabled: boolean;
   used: boolean;
-  snapshot: Omit<MswPanelHandlerSnapshot, "enabled" | "used">;
+  /** Mutable scenario-group state shared with the registered handler, when applicable. */
+  scenario?: ScenarioGroupMeta;
+  snapshot: Omit<MswPanelHandlerSnapshot, "activeScenario" | "enabled" | "used">;
 }
 
 interface HandlerInfoShape {
@@ -123,6 +181,7 @@ export function createMswPanelController(
 ): MswPanelController {
   const listeners = new Set<() => void>();
   const defaultEnabled = options.defaultEnabled ?? true;
+  const presets = options.presets ?? [];
   const trackedHandlers = options.handlers ?? options.runtime.listHandlers();
   let records = buildRecords(trackedHandlers, defaultEnabled);
   let cachedSnapshot: MswPanelSnapshot | null = null;
@@ -136,12 +195,12 @@ export function createMswPanelController(
         : null;
   const storageKey = options.storageKey ?? "msw-panel";
 
-  hydrateDisabledState(records, storage ?? undefined, storageKey);
+  hydratePersistedState(records, storage ?? undefined, storageKey);
   applyHandlerState(options.runtime, records);
 
   const emitChange = () => {
     cachedSnapshot = null;
-    persistDisabledState(records, storage ?? undefined, storageKey);
+    persistState(records, storage ?? undefined, storageKey);
     for (const listener of listeners) listener();
   };
 
@@ -175,7 +234,30 @@ export function createMswPanelController(
     emitChange();
   };
 
+  const setScenario = (id: string, scenarioId: string) => {
+    const record = records.find((entry) => entry.id === id);
+    if (!record?.scenario || record.scenario.getActive() === scenarioId) return;
+
+    record.scenario.setActive(scenarioId);
+    if (record.scenario.getActive() !== scenarioId) return;
+    emitChange();
+  };
+
   return {
+    applyPreset(presetId) {
+      const preset = presets.find((entry) => entry.id === presetId);
+      if (!preset) return;
+
+      let didChange = false;
+      for (const selection of preset.selections) {
+        const record = findSelectionRecord(records, selection);
+        if (!record?.scenario || record.scenario.getActive() === selection.scenarioId) continue;
+        record.scenario.setActive(selection.scenarioId);
+        if (record.scenario.getActive() === selection.scenarioId) didChange = true;
+      }
+
+      if (didChange) emitChange();
+    },
     getSnapshot() {
       if (cachedSnapshot) return cachedSnapshot;
 
@@ -183,13 +265,21 @@ export function createMswPanelController(
         ...record.snapshot,
         enabled: record.enabled,
         used: record.used,
+        ...(record.scenario ? { activeScenario: record.scenario.getActive() } : null),
       }));
       const activeHandlers = handlers.filter((h) => h.enabled).length;
 
       cachedSnapshot = {
+        activePreset: findActivePreset(presets, records),
         activeHandlers,
         disabledHandlers: handlers.length - activeHandlers,
         handlers,
+        presets: presets.map((preset) => ({
+          id: preset.id,
+          label: preset.label,
+          ...(preset.tag ? { tag: preset.tag } : null),
+          active: isPresetActive(preset, records),
+        })),
       };
 
       return cachedSnapshot;
@@ -211,6 +301,9 @@ export function createMswPanelController(
     setEnabled(id, nextEnabled) {
       setRecordEnabled(id, nextEnabled);
     },
+    setScenario(id, scenarioId) {
+      setScenario(id, scenarioId);
+    },
     subscribe(listener) {
       listeners.add(listener);
       if (pollingTimer === null) {
@@ -229,7 +322,7 @@ export function createMswPanelController(
       const nextRecords = buildRecords(options.runtime.listHandlers(), defaultEnabled, records);
 
       records = nextRecords;
-      hydrateDisabledState(records, storage ?? undefined, storageKey);
+      hydratePersistedState(records, storage ?? undefined, storageKey);
       applyHandlerState(options.runtime, records);
 
       if (!areRecordsEqual(previousRecords, records)) {
@@ -305,13 +398,15 @@ function buildRecords(
     const handler = unwrapHandler(rawHandler);
     const id = createHandlerId(handler, identityCount);
     const previousRecord = previousRecordsById.get(id);
+    const meta = readMswPanelMeta(handler);
 
     return {
       enabled: previousRecord?.enabled ?? defaultEnabled,
       used: getUsed(handler),
       handler,
       id,
-      snapshot: describeHandler(handler, id ?? `handler-${index}`),
+      scenario: meta?.scenario,
+      snapshot: describeHandler(handler, id ?? `handler-${index}`, meta?.tags, meta?.scenario),
     };
   });
 }
@@ -326,13 +421,19 @@ function createHandlerId(handler: MswAnyHandler, identityCount: Map<string, numb
 function describeHandler(
   handler: MswAnyHandler,
   id: string,
-): Omit<MswPanelHandlerSnapshot, "enabled" | "used"> {
+  tags: string[] | undefined,
+  scenario: ScenarioGroupMeta | undefined,
+): Omit<MswPanelHandlerSnapshot, "activeScenario" | "enabled" | "used"> {
   const handlerShape = handler as unknown;
   const info = (handlerShape as { info?: HandlerInfoShape }).info ?? {};
   const kind = (handlerShape as { kind?: string }).kind;
+  const extra = {
+    tags: tags ?? [],
+    ...(scenario ? { scenarios: scenario.scenarios } : null),
+  };
 
   if (kind === "websocket") {
-    return { id, kind: "websocket", label: "WS connection", method: null, path: null };
+    return { id, kind: "websocket", label: "WS connection", method: null, path: null, ...extra };
   }
 
   if (info.operationType || info.operationName) {
@@ -341,17 +442,21 @@ function describeHandler(
     return {
       id,
       kind: "graphql",
-      label: `${operationType} ${operationName}`,
+      label: scenario?.name ?? `${operationType} ${operationName}`,
       method: null,
       path: info.path ?? null,
+      ...extra,
     };
   }
 
   const method = info.method?.toUpperCase() ?? null;
   const path = info.path ?? null;
-  const label = info.header ?? ([method, path].filter(Boolean).join(" ") || "Unknown handler");
+  const label =
+    scenario?.name ??
+    info.header ??
+    ([method, path].filter(Boolean).join(" ") || "Unknown handler");
 
-  return { id, kind: method ? "http" : "unknown", label, method, path };
+  return { id, kind: method ? "http" : "unknown", label, method, path, ...extra };
 }
 
 function getHandlerIdentity(handler: MswAnyHandler): string {
@@ -387,7 +492,69 @@ function getHandlerIdentity(handler: MswAnyHandler): string {
   return `${kind ?? "handler"}:unknown`;
 }
 
-function hydrateDisabledState(
+/**
+ * Resolves the record a preset selection targets. Matches by handler identity first, then falls back
+ * to the stable handler id. The fallback matters because a preset captures handler objects at module
+ * load, but the controller tracks whatever `runtime.listHandlers()` returns — and those can drift to
+ * different instances (e.g. when an HMR update re-evaluates the handlers module and swaps the worker's
+ * handlers without re-running the code that built the presets). Matching by id keeps presets working.
+ */
+function findSelectionRecord(
+  records: HandlerRecord[],
+  selection: ScenarioSelection,
+): HandlerRecord | undefined {
+  const direct = records.find((entry) => entry.handler === selection.handler);
+  if (direct) return direct;
+  const identity = getHandlerIdentity(selection.handler);
+  return records.find((entry) => getHandlerIdentity(entry.handler) === identity);
+}
+
+/** True when every selection in the preset currently matches the live scenario state. */
+function isPresetActive(preset: MswPanelPreset, records: HandlerRecord[]): boolean {
+  if (preset.selections.length === 0) return false;
+  return preset.selections.every((selection) => {
+    const record = findSelectionRecord(records, selection);
+    return record?.scenario?.getActive() === selection.scenarioId;
+  });
+}
+
+function findActivePreset(
+  presets: readonly MswPanelPreset[],
+  records: HandlerRecord[],
+): string | null {
+  for (const preset of presets) {
+    if (isPresetActive(preset, records)) return preset.id;
+  }
+  return null;
+}
+
+interface PersistedState {
+  disabled: string[];
+  scenarios: Record<string, string>;
+}
+
+/**
+ * Parses persisted state, accepting both the current object shape and the legacy
+ * `string[]` of disabled ids written by older versions.
+ */
+function parsePersistedState(rawValue: string): PersistedState {
+  const parsed = JSON.parse(rawValue) as unknown;
+
+  if (Array.isArray(parsed)) {
+    return { disabled: parsed as string[], scenarios: {} };
+  }
+  if (parsed && typeof parsed === "object") {
+    const candidate = parsed as Partial<PersistedState>;
+    return {
+      disabled: Array.isArray(candidate.disabled) ? candidate.disabled : [],
+      scenarios:
+        candidate.scenarios && typeof candidate.scenarios === "object" ? candidate.scenarios : {},
+    };
+  }
+  return { disabled: [], scenarios: {} };
+}
+
+function hydratePersistedState(
   records: HandlerRecord[],
   storage?: MswPanelStorage,
   storageKey?: string,
@@ -398,22 +565,33 @@ function hydrateDisabledState(
   if (!rawValue) return;
 
   try {
-    const disabledIds = new Set(JSON.parse(rawValue) as string[]);
+    const { disabled, scenarios } = parsePersistedState(rawValue);
+    const disabledIds = new Set(disabled);
     for (const record of records) {
       record.enabled = !disabledIds.has(record.id);
+      const persistedScenario = scenarios[record.id];
+      if (record.scenario && persistedScenario !== undefined) {
+        record.scenario.setActive(persistedScenario);
+      }
     }
   } catch {
-    storage.setItem(storageKey, JSON.stringify([]));
+    storage.setItem(storageKey, JSON.stringify({ disabled: [], scenarios: {} }));
   }
 }
 
-function persistDisabledState(
+function persistState(
   records: HandlerRecord[],
   storage?: MswPanelStorage,
   storageKey?: string,
 ): void {
   if (!storage || !storageKey) return;
 
-  const disabledIds = records.filter((record) => !record.enabled).map((record) => record.id);
-  storage.setItem(storageKey, JSON.stringify(disabledIds));
+  const disabled = records.filter((record) => !record.enabled).map((record) => record.id);
+  const scenarios: Record<string, string> = {};
+  for (const record of records) {
+    if (record.scenario) {
+      scenarios[record.id] = record.scenario.getActive();
+    }
+  }
+  storage.setItem(storageKey, JSON.stringify({ disabled, scenarios }));
 }

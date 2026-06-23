@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { MswPanelHandlerSnapshot } from "./index.js";
-import { groupHandlers, splitPath, type HandlerGroupNode } from "./panel-grouping.js";
+import {
+  groupHandlers,
+  groupHandlersByTag,
+  splitPath,
+  type HandlerGroupNode,
+} from "./panel-grouping.js";
 
 function handler(overrides: Partial<MswPanelHandlerSnapshot>): MswPanelHandlerSnapshot {
   return {
@@ -131,5 +136,29 @@ describe("groupHandlers", () => {
     const snapshot = [...input];
     groupHandlers(input);
     expect(input).toEqual(snapshot);
+  });
+});
+
+describe("groupHandlersByTag", () => {
+  it("groups handlers under each of their tags and sorts tags alphabetically", () => {
+    const groups = groupHandlersByTag([
+      handler({ id: "a", path: "/a", tags: ["billing", "auth"] }),
+      handler({ id: "b", path: "/b", tags: ["auth"] }),
+    ]);
+
+    expect(groups.roots.map((node) => node.label)).toEqual(["auth", "billing"]);
+    const auth = groups.roots.find((node) => node.label === "auth");
+    expect(auth?.handlers.map((h) => h.id)).toEqual(["a", "b"]);
+    expect(auth?.key).toBe("tag:auth");
+  });
+
+  it("returns untagged handlers in ungrouped", () => {
+    const groups = groupHandlersByTag([
+      handler({ id: "a", path: "/a", tags: ["auth"] }),
+      handler({ id: "b", path: "/b" }),
+    ]);
+
+    expect(groups.roots.map((node) => node.label)).toEqual(["auth"]);
+    expect(groups.ungrouped.map((h) => h.id)).toEqual(["b"]);
   });
 });

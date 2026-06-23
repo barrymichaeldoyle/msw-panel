@@ -79,6 +79,10 @@ export interface CreateMswPanelBridgeClientOptions {
 
 type MswPanelBridgeCommand =
   | {
+      action: "apply-preset";
+      presetId: string;
+    }
+  | {
       action: "set-all-enabled";
       enabled: boolean;
     }
@@ -86,6 +90,11 @@ type MswPanelBridgeCommand =
       action: "set-enabled";
       enabled: boolean;
       id: string;
+    }
+  | {
+      action: "set-scenario";
+      id: string;
+      scenarioId: string;
     }
   | {
       action: "sync";
@@ -129,9 +138,11 @@ function isMswPanelBridgeMessage(value: unknown): value is MswPanelBridgeMessage
 }
 
 const emptySnapshot: MswPanelSnapshot = {
+  activePreset: null,
   activeHandlers: 0,
   disabledHandlers: 0,
   handlers: [],
+  presets: [],
 };
 
 export function createMswPanelBridgeServer(
@@ -160,11 +171,17 @@ export function createMswPanelBridgeServer(
     }
 
     switch (message.command.action) {
+      case "apply-preset":
+        options.controller.applyPreset(message.command.presetId);
+        break;
       case "set-all-enabled":
         options.controller.setAllEnabled(message.command.enabled);
         break;
       case "set-enabled":
         options.controller.setEnabled(message.command.id, message.command.enabled);
+        break;
+      case "set-scenario":
+        options.controller.setScenario(message.command.id, message.command.scenarioId);
         break;
       case "sync":
         options.controller.sync();
@@ -221,6 +238,12 @@ export function createMswPanelBridgeClient(
   };
 
   return {
+    applyPreset(presetId) {
+      postCommand({
+        action: "apply-preset",
+        presetId,
+      });
+    },
     dispose() {
       unsubscribeTransport();
     },
@@ -238,6 +261,13 @@ export function createMswPanelBridgeClient(
         action: "set-enabled",
         enabled: nextEnabled,
         id,
+      });
+    },
+    setScenario(id, scenarioId) {
+      postCommand({
+        action: "set-scenario",
+        id,
+        scenarioId,
       });
     },
     subscribe(listener) {

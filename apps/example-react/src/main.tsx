@@ -21,6 +21,7 @@ async function prepareMocks() {
   }
 
   const { subscribeToHandlerUpdates, worker } = await import("./mocks/browser");
+  const { presets } = await import("./mocks/handlers");
 
   await worker.start({
     onUnhandledRequest: "bypass",
@@ -28,6 +29,7 @@ async function prepareMocks() {
   });
 
   const controller = createMswPanelController({
+    presets,
     runtime: worker,
     storage: window.localStorage,
     storageKey: "msw-panel:example-react",

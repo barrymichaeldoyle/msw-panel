@@ -4,12 +4,13 @@ import { stdin as input, stdout as output } from "node:process";
 
 import { createMswPanelController } from "msw-panel";
 
-import { apiBaseUrl } from "./mocks/handlers";
+import { apiBaseUrl, presets } from "./mocks/handlers";
 import { handlers, server } from "./mocks/server";
 import { createFileStorage } from "./storage";
 
 const controller = createMswPanelController({
   handlers,
+  presets,
   runtime: server,
   storage: createFileStorage(),
   storageKey: "msw-panel:example-node",
@@ -103,6 +104,14 @@ async function handleCommand(line: string): Promise<boolean> {
 
       console.log('Use "all on" or "all off".');
       return false;
+    case "scenario": {
+      const [target, ...scenarioParts] = rest;
+      setScenario(target ?? "", scenarioParts.join(" "));
+      return false;
+    }
+    case "preset":
+      applyPreset(args);
+      return false;
     case "sync":
       controller.sync();
       printSnapshot();
@@ -133,6 +142,47 @@ function updateHandler(rawTarget: string, mode: "toggle" | "on" | "off"): void {
     controller.setEnabled(handler.id, mode === "on");
   }
 
+  printSnapshot();
+}
+
+function setScenario(rawTarget: string, scenarioId: string): void {
+  const snapshot = controller.getSnapshot();
+  const handler = resolveHandler(snapshot.handlers, rawTarget);
+
+  if (!handler) {
+    console.log(`Unknown handler target: ${rawTarget || "(empty)"}`);
+    printSnapshot();
+    return;
+  }
+
+  const scenarios = handler.scenarios ?? [];
+  if (scenarios.length === 0) {
+    console.log(`Handler "${handler.label}" has no scenarios.`);
+    return;
+  }
+
+  if (!scenarioId || !scenarios.some((scenario) => scenario.id === scenarioId)) {
+    console.log(
+      `Pick a scenario for "${handler.label}": ${scenarios.map((scenario) => scenario.id).join(", ")}`,
+    );
+    return;
+  }
+
+  controller.setScenario(handler.id, scenarioId);
+  printSnapshot();
+}
+
+function applyPreset(label: string): void {
+  const available = controller.getSnapshot().presets ?? [];
+
+  if (!label || !available.some((preset) => preset.id === label)) {
+    console.log(
+      `Available presets: ${available.map((preset) => preset.label).join(", ") || "none"}`,
+    );
+    return;
+  }
+
+  controller.applyPreset(label);
   printSnapshot();
 }
 
@@ -217,6 +267,8 @@ function printHelp(): void {
   console.log("  off <id|n>     Disable a handler");
   console.log("  all on         Enable all handlers");
   console.log("  all off        Disable all handlers");
+  console.log("  scenario <id|n> <name>  Switch a handler's active scenario");
+  console.log("  preset <name>  Apply a global scenario preset");
   console.log("  sync           Re-read handlers from setupServer");
   console.log("  exit           Quit");
 }
@@ -227,6 +279,9 @@ function printSnapshot(): void {
   console.log(
     `\nHandlers: ${snapshot.activeHandlers} enabled, ${snapshot.disabledHandlers} disabled`,
   );
+  if (snapshot.activePreset) {
+    console.log(`Active preset: ${snapshot.activePreset}`);
+  }
 
   snapshot.handlers.forEach((handler, index) => {
     const state = handler.enabled ? "on " : "off";
@@ -234,6 +289,16 @@ function printSnapshot(): void {
 
     console.log(`${index + 1}. [${state}] ${handler.label} -> ${target}`);
     console.log(`   id: ${handler.id}`);
+    if (handler.tags && handler.tags.length > 0) {
+      console.log(`   tags: ${handler.tags.join(", ")}`);
+    }
+    if (handler.scenarios && handler.scenarios.length > 0) {
+      console.log(
+        `   scenario: ${handler.activeScenario} (of ${handler.scenarios
+          .map((scenario) => scenario.id)
+          .join(", ")})`,
+      );
+    }
   });
 }
 

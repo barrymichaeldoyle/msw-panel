@@ -2,7 +2,9 @@
 
 Framework-agnostic devtools for Mock Service Worker.
 
-Inspect the handlers already registered with MSW and toggle them on or off — without replacing your existing mocking setup.
+Inspect the handlers already registered with MSW, toggle them on or off, switch endpoints between named **scenarios** (empty / error / loading), and organize everything with **feature tags**, all from a floating panel.
+
+Built to drop into an **existing MSW setup**: point it at the `worker` or `server` you already have. Toggling and tags need no changes to your handlers; scenarios reuse the resolvers you already wrote.
 
 ## Install
 
@@ -56,6 +58,39 @@ const controller = createMswPanelController({
 });
 ```
 
+## Scenarios & feature tags
+
+These are opt-in helpers, all imported from `msw-panel`. They work with the controller setup above; no extra wiring.
+
+**Feature tags**: wrap a handler you already have. No config changes:
+
+```ts
+import { withTags } from "msw-panel";
+
+withTags(http.get("/api/user", resolver), ["auth"]);
+```
+
+**Scenarios**: give an endpoint named response states. Your existing resolver becomes the default scenario:
+
+```ts
+import { defineScenarios } from "msw-panel";
+
+export const user = defineScenarios({
+  method: "get",
+  path: "/api/user",
+  default: "Signed in",
+  scenarios: {
+    "Signed in": () => HttpResponse.json({ name: "Barry" }), // ← your existing resolver
+    "Signed out": () => new HttpResponse(null, { status: 401 }),
+    Error: () => new HttpResponse(null, { status: 500 }),
+  },
+});
+```
+
+`defineScenarios` returns a normal MSW handler. Register it in your handlers array like any other. The panel renders a per-endpoint scenario selector, tag chips, and (when you add [presets](https://barrymichaeldoyle.github.io/msw-panel/guides/scenarios/)) a one-click selector to flip many endpoints at once.
+
+→ [Scenarios guide](https://barrymichaeldoyle.github.io/msw-panel/guides/scenarios/) · [Feature tags guide](https://barrymichaeldoyle.github.io/msw-panel/guides/feature-tags/)
+
 ## Local development
 
 Prerequisites: Node.js, pnpm.
@@ -88,7 +123,7 @@ pnpm ci:check
 
 ## Why this architecture
 
-- The panel does not own MSW setup — it wraps an existing `worker` or `server` instance. That keeps it additive rather than invasive.
+- The panel does not own MSW setup. It wraps an existing `worker` or `server` instance. That keeps it additive rather than invasive: adopt it incrementally, one handler or feature at a time.
 - A framework-agnostic controller (`packages/core`) means React, Vue, Svelte, or any other UI adapter can be built on the same interface.
 - The bridge transport layer lets a panel UI talk to a controller across a window, iframe, or WebSocket boundary without coupling the React adapter to the transport.
 

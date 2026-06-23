@@ -9,7 +9,7 @@ test("minimal react example works with default panel setup", async ({ page }) =>
   await expect(page.getByText("smoke-coverage")).toBeVisible();
 
   await page.getByRole("button", { name: "Open MSW Panel" }).click();
-  await expect(page.getByText("2 enabled")).toBeVisible();
-  await expect(page.getByText("0 disabled")).toBeVisible();
+  // Summary shows enabled as a fraction of the total; the used count sits under the "Only used" toggle.
+  await expect(page.getByText("2/2 enabled")).toBeVisible();
   await expect(page.getByText("2 used")).toBeVisible();
 });

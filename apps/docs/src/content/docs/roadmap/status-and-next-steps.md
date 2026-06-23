@@ -16,18 +16,20 @@ The React panel is the primary supported UI. It works with MSW's browser worker
 
 - Runtime-added handlers require a manual `controller.sync()` call to appear in the panel.
 - Handler labels are richest for HTTP and GraphQL handlers.
+- [Scenarios](/msw-panel/guides/scenarios/): `defineScenarios` is HTTP-only, but `withScenarios` wraps fully-formed handlers and supports GraphQL too. WebSocket scenarios are best-effort (untested). [Feature tags](/msw-panel/guides/feature-tags/) work on every handler kind.
 - The remote bridge examples assume the relay is already reachable (no reconnect/backoff yet).
-- `panelSide` supports `"top"` and `"bottom"` only — left/right expansion is not yet implemented.
+- `panelSide` supports `"top"` and `"bottom"` only. Left/right expansion is not yet implemented.
 
 ## Planned
 
-1. **Framework adapters** — first-party Vue and Svelte panel UIs.
+1. **Framework adapters**: first-party Vue and Svelte panel UIs.
    Track [Vue adapter (#4)](https://github.com/barrymichaeldoyle/msw-panel/issues/4)
    and [Svelte adapter (#5)](https://github.com/barrymichaeldoyle/msw-panel/issues/5).
-2. **Auto-sync** — lifecycle hooks so runtime-added handlers appear without a manual `sync()`.
-3. **Integration tests** — browser-level tests covering real request fallthrough when a handler is toggled off.
-4. **Remote bridge reconnect** — backoff and reconnect logic for the WebSocket transport.
-5. **`panelSide` left/right** — horizontal panel expansion for the floating panel.
+2. **Auto-sync**: lifecycle hooks so runtime-added handlers appear without a manual `sync()`.
+3. **Integration tests**: browser-level tests covering real request fallthrough when a handler is toggled off.
+4. **Remote bridge reconnect**: backoff and reconnect logic for the WebSocket transport.
+5. **`panelSide` left/right**: horizontal panel expansion for the floating panel.
+6. **WebSocket scenarios**: first-class, tested support for switching WebSocket handler scenarios via `withScenarios`.
 
 ## Under consideration
 

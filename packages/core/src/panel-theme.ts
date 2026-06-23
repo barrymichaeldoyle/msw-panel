@@ -10,16 +10,22 @@ export interface PanelThemeStyles {
   emptyTitle: CSSProperties;
   frame: CSSProperties;
   ghostButton: CSSProperties;
+  groupHeader: CSSProperties;
+  groupHeaderBorder: CSSProperties;
   inlineCode: CSSProperties;
   kindBadge: CSSProperties;
+  list: CSSProperties;
   methodBadge: CSSProperties;
   noResults: CSSProperties;
+  presetSelect: CSSProperties;
   refreshBanner: CSSProperties;
   refreshButton: CSSProperties;
   rowBorder: CSSProperties;
   pathUsed: CSSProperties;
   pathUnused: CSSProperties;
   rowUnused: CSSProperties;
+  scenarioSelect: CSSProperties;
+  tagChip: CSSProperties;
   usageMeta: CSSProperties;
   searchClear: CSSProperties;
   searchInput: CSSProperties;
@@ -58,6 +64,12 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       border: "1px solid #2d374c",
       color: "#d8dfed",
     },
+    groupHeader: {
+      background: "#10141d",
+    },
+    groupHeaderBorder: {
+      borderTop: "1px solid rgba(148, 163, 184, 0.14)",
+    },
     inlineCode: {
       background: "#191f2c",
       color: "#f4f7fb",
@@ -66,12 +78,20 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       background: "#1d2433",
       color: "#c7d0e3",
     },
+    list: {
+      background: "#131927",
+    },
     methodBadge: {
       background: "#1a332b",
       color: "#8ce5be",
     },
     noResults: {
       color: "#8f97ab",
+    },
+    presetSelect: {
+      background: "#1a2030",
+      border: "1px solid #2d374c",
+      color: "#f4f7fb",
     },
     refreshBanner: {
       background: "#1e1505",
@@ -93,6 +113,15 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
     },
     rowBorder: {
       borderBottom: "1px solid rgba(148, 163, 184, 0.14)",
+    },
+    scenarioSelect: {
+      background: "#1a2030",
+      border: "1px solid #2d374c",
+      color: "#f4f7fb",
+    },
+    tagChip: {
+      background: "#1d2433",
+      color: "#9aa3b7",
     },
     searchClear: {
       color: "#7d879d",
@@ -119,8 +148,8 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       color: "#fff",
     },
     triggerButton: {
-      background: "#ff6a33",
-      boxShadow: "0 16px 40px rgba(0, 0, 0, 0.35)",
+      background: "#000000",
+      boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.16), 0 16px 40px rgba(0, 0, 0, 0.35)",
       color: "#ffffff",
     },
     usageMeta: {
@@ -153,6 +182,12 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       border: "1px solid #e5e7eb",
       color: "#374151",
     },
+    groupHeader: {
+      background: "#ffffff",
+    },
+    groupHeaderBorder: {
+      borderTop: "1px solid #f3f4f6",
+    },
     inlineCode: {
       background: "#f3f4f6",
       color: "#111827",
@@ -161,12 +196,20 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       background: "#f3f4f6",
       color: "#374151",
     },
+    list: {
+      background: "#f9fafb",
+    },
     methodBadge: {
       background: "#ecfdf5",
       color: "#065f46",
     },
     noResults: {
       color: "#6b7280",
+    },
+    presetSelect: {
+      background: "#ffffff",
+      border: "1px solid #d1d5db",
+      color: "#111827",
     },
     refreshBanner: {
       background: "#fffbeb",
@@ -188,6 +231,15 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
     },
     rowBorder: {
       borderBottom: "1px solid #f3f4f6",
+    },
+    scenarioSelect: {
+      background: "#ffffff",
+      border: "1px solid #d1d5db",
+      color: "#111827",
+    },
+    tagChip: {
+      background: "#f3f4f6",
+      color: "#6b7280",
     },
     searchClear: {
       color: "#9ca3af",
@@ -214,8 +266,8 @@ export const panelThemes: Record<PanelTheme, PanelThemeStyles> = {
       color: "#fff",
     },
     triggerButton: {
-      background: "#ff6a33",
-      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+      background: "#000000",
+      boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.16), 0 2px 8px rgba(0, 0, 0, 0.15)",
       color: "#fff",
     },
     usageMeta: {

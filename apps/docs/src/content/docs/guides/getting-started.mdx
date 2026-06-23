@@ -28,6 +28,15 @@ export function App() {
 }
 ```
 
-That's it. A floating button appears in the corner — click it to open the panel and toggle handlers on or off.
+That's it. A floating button appears in the corner. Click it to open the panel and toggle handlers on or off.
+
+Notice what you **didn't** have to do: no rewriting handlers, no wrapping your `worker`, no changing how you call `setupWorker`. The panel reads the handlers MSW already knows about.
+
+## Next steps
+
+Everything above is the whole baseline. From here you can opt into more, one piece at a time. None of it changes the setup you just wrote:
+
+- **[Feature tags](/msw-panel/guides/feature-tags/)**: wrap a handler with `withTags(handler, ["auth"])` to make it searchable and groupable. No config changes.
+- **[Scenarios](/msw-panel/guides/scenarios/)**: turn one endpoint into `defineScenarios` to switch it between `success` / `empty` / `error` states from the panel. Your existing resolver becomes the default scenario.
 
 See the [React reference](/msw-panel/reference/react/) for all props and defaults.
