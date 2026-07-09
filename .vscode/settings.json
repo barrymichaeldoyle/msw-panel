@@ -29,5 +29,8 @@
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "cSpell.words": ["esbuild", "oxfmt", "oxlint"],
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./node_modules/@typescript/native",
+  "typescript.tsdk": "node_modules/typescript-6/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

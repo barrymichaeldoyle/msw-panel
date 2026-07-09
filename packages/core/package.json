@@ -53,7 +53,7 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts src/react.tsx src/react-lazy.tsx src/bridge.ts --dts --format esm,cjs",
+    "build": "tsup",
     "lint": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"

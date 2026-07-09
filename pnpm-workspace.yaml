@@ -14,7 +14,7 @@ onlyBuiltDependencies:
 
 overrides:
   yaml: 2.8.4
-  msw: 2.14.6
+  msw: 2.15.0
   react: 19.2.7
   react-dom: 19.2.7
   js-yaml: 4.2.0
@@ -24,16 +24,21 @@ overrides:
   read-yaml-file: 2.1.0
   # Force all build-tooling consumers onto the patched esbuild line.
   esbuild: 0.28.1
-  # Force astro's transitive vite onto the patched 7.x line
-  # (GHSA-v6wh-96g9-6wx3 server.fs.deny bypass + launch-editor UNC disclosure).
-  # astro@6 requires vite ^7.3.2; 7.3.5 is the patched release within that range.
-  vite@7: 7.3.5
   # Force jsdom's transitive undici onto the patched line.
   undici: 7.28.0
 
 catalog:
-  msw: 2.14.6
+  msw: 2.15.0
   react: 19.2.7
   react-dom: 19.2.7
   "@types/react": 19.2.17
   "@types/react-dom": 19.2.3
+
+# Fresh TypeScript 7 platform packages and recent vite patches are safe to
+# install before pnpm's default minimumReleaseAge window elapses.
+minimumReleaseAgeExclude:
+  - typescript
+  - "@typescript/typescript-*"
+  - vite
+  - astro
+  - "@astrojs/*"
